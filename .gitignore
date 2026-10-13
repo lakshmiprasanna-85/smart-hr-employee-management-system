@@ -218,3 +218,24 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Django uploads and collected static files
+media/
+staticfiles/
+
+# Other local databases
+*.sqlite3
+
+# Environment variants (keep the example file)
+.env.*
+!.env.example
+
+# Editors and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Generated reports and payslips (may contain personal data)
+exports/
+payslips/
