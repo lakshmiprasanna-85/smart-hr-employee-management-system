@@ -11,7 +11,7 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 | Week | Focus | Status |
 |------|-------|--------|
 | 1 | Requirements, data model, authentication, role-aware dashboards, tests | Done |
-| 2 | Employee, attendance and leave workflows | In progress |
+| 2 | Employee, attendance and leave workflows | Done |
 | 3 | Payroll, payslips, e-mail notifications | Planned |
 | 4 | Charts, reports, security review, final docs | Planned |
 
@@ -29,6 +29,21 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 * Documentation in `docs/`: [requirements](docs/requirements.md),
   [role-permission matrix](docs/role_permission_matrix.md),
   [schema notes and ER diagram](docs/schema.md).
+
+### What Week 2 delivers
+
+* Employee directory API: Admin/HR read full records (including personal
+  fields) and create employees; other roles get a public directory view with
+  personal fields stripped. Filtering by department, status and code search.
+* Attendance API: employees check in / check out once per day (duplicate or
+  out-of-order attempts return `409`), plus a monthly per-employee summary
+  restricted to Admin/HR.
+* Leave API: employees submit requests for themselves; Admin/HR approve or
+  reject; the owner (or Admin/HR) may cancel a pending request. Every status
+  change is validated against the state machine in
+  `apps/leave_management/states.py` and written to `LeaveStatusHistory`.
+* 15 additional tests covering the directory privacy boundary, attendance
+  rules and the leave approval workflow (48 tests in total).
 
 ## Prerequisites
 
@@ -150,6 +165,12 @@ Open http://127.0.0.1:8000/ and log in. Each role lands on its own dashboard:
 | `/dashboard/employee/` | yes | yes | yes |
 | `/payroll/` | yes | yes | no |
 | `/api/accounts/me/` | yes | yes | yes |
+| `/api/employees/employees/` | full | full | directory only |
+| `/api/attendance/checkin/`, `/checkout/` | own | own | own |
+| `/api/attendance/records/` | all | all | own |
+| `/api/attendance/summary/` | yes | yes | no |
+| `/api/leave/requests/` | all | all | own |
+| `/api/leave/requests/<id>/decide/` | decide | decide | cancel own |
 | `/api/payroll/records/` | all rows | all rows | own rows |
 | `/admin/` (Django admin) | yes | no | no |
 
@@ -192,10 +213,20 @@ requirements.txt         Python dependencies
 * Open a pull request into `main`, let the team lead review it, then merge.
 * Never commit `.env`, `db.sqlite3`, `logs/`, `media/` or real personal data.
 
-## Known limitations (Week 1)
+## Known limitations
 
 * The dashboards are shells; the feature cards are placeholders for later weeks.
-* Employee/department screens, attendance entry, leave workflow, payslip
-  generation and e-mail sending are not built yet.
-* Tests run on whichever database `.env` selects; all 33 pass on both SQLite and PostgreSQL 16.
+* Payslip generation, e-mail sending, charts and CSV/PDF export are not built yet.
+* Attendance and leave are exposed through the API only; web screens for them
+  are planned for a later sprint.
+* Tests run on whichever database `.env` selects; all 48 pass on SQLite.
 * Screenshots, KPI definitions and deployment notes are added in Week 4.
+
+## Contributors
+
+* **Lakshmi Prasanna** ([@lakshmiprasanna-85](https://github.com/lakshmiprasanna-85)) —
+  project lead; Week 1 foundation (schema, authentication, role matrix, payroll
+  access boundary, test harness).
+* **Abhinav Shukla** — Week 2 workflows: employee directory, attendance
+  check-in/out and monthly summary, leave approval state machine and history,
+  plus the Week 2 test suite.
