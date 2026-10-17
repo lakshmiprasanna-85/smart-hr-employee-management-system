@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}My dashboard - Smart HR{% endblock %}
+{% block content %}
+<h1>My dashboard</h1>
+{% if profile %}
+  <p class="muted">Employee {{ profile.employee_code }}{% if profile.department %} · {{ profile.department }}{% endif %}{% if profile.job_title %} · {{ profile.job_title }}{% endif %}</p>
+{% else %}
+  <p class="muted">No employee profile is linked to your account yet. Please contact HR.</p>
+{% endif %}
+<div class="grid">
+  <div class="card disabled"><h2>My attendance</h2><p>Coming in Week 2.</p></div>
+  <div class="card disabled"><h2>My leave</h2><p>Coming in Week 2.</p></div>
+  <div class="card disabled"><h2>My payslips</h2><p>Coming in Week 3.</p></div>
+</div>
+{% endblock %}

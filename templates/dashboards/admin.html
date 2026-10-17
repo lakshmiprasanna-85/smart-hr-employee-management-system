@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Admin dashboard - Smart HR{% endblock %}
+{% block content %}
+<h1>Admin dashboard</h1>
+<p class="muted">Full access to users, employees, attendance, leave and payroll.</p>
+<div class="grid">
+  <a class="card" href="{% url 'admin:index' %}"><h2>User &amp; data admin</h2><p>Manage accounts and roles.</p></a>
+  <a class="card" href="{% url 'dashboard-hr' %}"><h2>HR dashboard</h2><p>Employees, attendance, leave.</p></a>
+  <a class="card" href="{% url 'payroll-home' %}"><h2>Payroll</h2><p>Payroll periods and records.</p></a>
+  <div class="card disabled"><h2>Reports &amp; charts</h2><p>Coming in Week 4.</p></div>
+</div>
+{% endblock %}

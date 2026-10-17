@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Payroll - Smart HR{% endblock %}
+{% block content %}
+<h1>Payroll</h1>
+<p class="muted">Visible to Admin and HR only.</p>
+<div class="card">
+  <h2>Recent payroll periods</h2>
+  {% if periods %}
+    <table>
+      <thead><tr><th>Period</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for p in periods %}
+          <tr><td>{{ p.label }}</td><td>{{ p.start_date }}</td><td>{{ p.end_date }}</td><td>{{ p.get_status_display }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No payroll periods yet.</p>
+  {% endif %}
+  <p class="muted">Salary records and payslips are built in Week 3.</p>
+</div>
+{% endblock %}

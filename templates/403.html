@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Access denied - Smart HR{% endblock %}
+{% block content %}
+<div class="card narrow">
+  <h1>Access denied</h1>
+  <p>Your role does not have permission to view this page.</p>
+  <p><a href="{% url 'dashboard' %}">Back to my dashboard</a></p>
+</div>
+{% endblock %}
