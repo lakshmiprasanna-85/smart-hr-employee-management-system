@@ -224,9 +224,11 @@ requirements.txt         Python dependencies
 
 ## Contributors
 
+Built as a two-person team.
+
 * **Lakshmi Prasanna** ([@lakshmiprasanna-85](https://github.com/lakshmiprasanna-85)) —
-  project lead; Week 1 foundation (schema, authentication, role matrix, payroll
-  access boundary, test harness).
-* **Abhinav Shukla** — Week 2 workflows: employee directory, attendance
-  check-in/out and monthly summary, leave approval state machine and history,
-  plus the Week 2 test suite.
+  project lead; core data model and schema, authentication and the role-permission
+  matrix, payroll access boundary, test harness.
+* **Abhinav Shukla** ([@abhinavshukla152005-beep](https://github.com/abhinavshukla152005-beep)) —
+  employee directory, attendance check-in/out with monthly summary, the leave
+  approval state machine and status history, and the Week 2 test suite.
