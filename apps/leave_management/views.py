@@ -61,9 +61,18 @@ class LeaveRequestDecisionView(APIView):
 
         is_privileged = request.user.role in (User.Role.ADMIN, User.Role.HR)
         is_owner = leave_request.employee.user_id == request.user.id
-        # Only Admin/HR may approve or reject; cancelling is open to the owner too.
-        if to_status in (LeaveStatus.APPROVED, LeaveStatus.REJECTED) and not is_privileged:
-            return Response({"detail": "Only Admin or HR may decide this request."}, status=403)
+        # Only Admin/HR may approve or reject; they cannot decide their own request.
+        if to_status in (LeaveStatus.APPROVED, LeaveStatus.REJECTED):
+            if is_owner:
+                return Response(
+                    {"detail": "You cannot approve or reject your own leave request."},
+                    status=403,
+                )
+            if not is_privileged:
+                return Response(
+                    {"detail": "Only Admin or HR may decide this request."},
+                    status=403,
+                )
         if to_status == LeaveStatus.CANCELLED and not (is_privileged or is_owner):
             return Response({"detail": "You may only cancel your own request."}, status=403)
 

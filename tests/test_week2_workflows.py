@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.attendance.models import Attendance
+from apps.employees.models import Employee
 from apps.leave_management.models import LeaveRequest, LeaveStatusHistory
 
 from .helpers import PASSWORD, make_employee, make_leave_type, make_user
@@ -35,6 +36,27 @@ class EmployeeDirectoryTests(TestCase):
         self.client.login(username="hr_user", password=PASSWORD)
         response = self.client.get(reverse("api-employees"))
         self.assertIn("phone", response.json()[0])
+
+    def test_hr_creates_employee(self):
+        new_user = make_user("carol", EMPLOYEE)
+        self.client.login(username="hr_user", password=PASSWORD)
+        response = self.client.post(
+            reverse("api-employees"),
+            {
+                "user": new_user.pk,
+                "employee_code": "EMP100",
+                "joining_date": "2026-01-15",
+                "job_title": "Analyst",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201)
+        created = response.json()
+        self.assertEqual(created["employee_code"], "EMP100")
+        self.assertEqual(created["user"], new_user.pk)
+        self.assertTrue(
+            Employee.objects.filter(employee_code="EMP100", user=new_user).exists()
+        )
 
     def test_employee_cannot_create_employee(self):
         self.client.login(username="alice", password=PASSWORD)
@@ -185,6 +207,31 @@ class LeaveWorkflowTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_user_cannot_approve_or_reject_own_leave(self):
+        make_employee(self.hr, "EMPHR")
+        self.client.login(username="hr_user", password=PASSWORD)
+        created = self.client.post(
+            reverse("api-leave-requests"),
+            {
+                "leave_type": self.leave_type.pk,
+                "start_date": "2026-11-10",
+                "end_date": "2026-11-12",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(created.status_code, 201)
+        request_id = created.json()["id"]
+        url = reverse("api-leave-decide", kwargs={"pk": request_id})
+        approved = self.client.post(
+            url, {"decision": "approved"}, content_type="application/json"
+        )
+        self.assertEqual(approved.status_code, 403)
+        rejected = self.client.post(
+            url, {"decision": "rejected"}, content_type="application/json"
+        )
+        self.assertEqual(rejected.status_code, 403)
+        self.assertEqual(LeaveRequest.objects.get(pk=request_id).status, "pending")
 
     def test_employee_can_cancel_own_pending_request(self):
         request_id = self._apply().json()["id"]
