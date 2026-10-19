@@ -6,7 +6,7 @@ Run from the project root:
 
     python scripts/seed_demo_data.py
 
-All names, e-mail addresses and phone numbers below are fake. The password for
+Names are the project team; e-mail addresses are placeholders (example.com). The password for
 every demo account comes from SEED_PASSWORD in your .env file.
 """
 import os
@@ -45,10 +45,10 @@ LEAVE_TYPES = [
 
 # (username, first name, last name, role, employee code, department, job title, joining date)
 PEOPLE = [
-    ("admin_demo", "Asha", "Verma", User.Role.ADMIN, "EMP001", "Human Resources", "System Administrator", date(2023, 4, 3)),
-    ("hr_demo", "Rohan", "Mehta", User.Role.HR, "EMP002", "Human Resources", "HR Manager", date(2023, 6, 12)),
-    ("employee_demo", "Priya", "Nair", User.Role.EMPLOYEE, "EMP003", "Engineering", "Software Engineer", date(2024, 1, 15)),
-    ("employee_demo2", "Karan", "Shah", User.Role.EMPLOYEE, "EMP004", "Finance", "Accountant", date(2024, 8, 5)),
+    ("admin_demo", "Lakshmi", "Prasanna", User.Role.ADMIN, "EMP001", "Human Resources", "System Administrator", date(2023, 4, 3)),
+    ("hr_demo", "Abhinav", "Shukla", User.Role.HR, "EMP002", "Human Resources", "HR Manager", date(2023, 6, 12)),
+    ("employee_demo", "Subhankar", "Khatua", User.Role.EMPLOYEE, "EMP003", "Engineering", "Software Engineer", date(2024, 1, 15)),
+    ("employee_demo2", "Prajwal", "Nitin", User.Role.EMPLOYEE, "EMP004", "Finance", "Accountant", date(2024, 8, 5)),
 ]
 
 
@@ -77,6 +77,10 @@ def main():
         if created:
             user.set_password(PASSWORD)
             user.save()
+        elif (user.first_name, user.last_name) != (first, last):
+            # Keep demo names in sync if they were changed in this script.
+            user.first_name, user.last_name = first, last
+            user.save(update_fields=["first_name", "last_name"])
         Employee.objects.get_or_create(
             user=user,
             defaults={
