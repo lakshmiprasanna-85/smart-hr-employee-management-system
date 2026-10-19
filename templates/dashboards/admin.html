@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 {% block title %}Admin dashboard - Smart HR{% endblock %}
+{% block nav_home %} aria-current="page"{% endblock %}
 {% block content %}
-<h1>Admin dashboard</h1>
-<p class="muted">Full access to users, employees, attendance, leave and payroll.</p>
-<div class="grid">
-  <a class="card" href="{% url 'admin:index' %}"><h2>User &amp; data admin</h2><p>Manage accounts and roles.</p></a>
-  <a class="card" href="{% url 'dashboard-hr' %}"><h2>HR dashboard</h2><p>Employees, attendance, leave.</p></a>
-  <a class="card" href="{% url 'payroll-home' %}"><h2>Payroll</h2><p>Payroll periods and records.</p></a>
-  <div class="card disabled"><h2>Reports &amp; charts</h2><p>Coming in Week 4.</p></div>
-</div>
+<section class="hero">
+  <p class="eyebrow">Administrator</p>
+  <h1>Welcome, {{ user.first_name|default:user.get_username }}</h1>
+  <p class="lede">Manage accounts and roles, and open every area of the system.</p>
+</section>
+<ul class="tiles">
+  <li><a class="tile" href="{% url 'admin:index' %}"><span class="chip">1</span><h2>Users and roles</h2><p>Create accounts, assign roles, review the audit log.</p><span class="go">Open &rarr;</span></a></li>
+  <li><a class="tile" href="{% url 'dashboard-hr' %}"><span class="chip">2</span><h2>HR desk</h2><p>Employees, attendance and leave.</p><span class="go">Open &rarr;</span></a></li>
+  <li><a class="tile" href="{% url 'payroll-home' %}"><span class="chip">3</span><h2>Payroll</h2><p>Payroll periods and records.</p><span class="go">Open &rarr;</span></a></li>
+  <li><div class="tile is-later"><span class="chip">4</span><h2>Reports and charts</h2><span class="pill">Not available yet</span></div></li>
+</ul>
 {% endblock %}
