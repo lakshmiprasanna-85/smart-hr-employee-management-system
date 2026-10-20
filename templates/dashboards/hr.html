@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}HR dashboard - Smart HR{% endblock %}
+{% block nav_home %} aria-current="page"{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">HR desk</p>
+  <h1>Welcome, {{ user.first_name|default:user.get_username }}</h1>
+  <p class="lede">Manage employees, attendance, leave decisions and payroll records.</p>
+</section>
+<ul class="tiles">
+  <li><div class="tile is-later"><span class="chip">1</span><h2>Employees</h2><span class="pill">Not available yet</span></div></li>
+  <li><div class="tile is-later"><span class="chip">2</span><h2>Attendance</h2><span class="pill">Not available yet</span></div></li>
+  <li><div class="tile is-later"><span class="chip">3</span><h2>Leave approvals</h2><span class="pill">Not available yet</span></div></li>
+  <li><a class="tile" href="{% url 'payroll-home' %}"><span class="chip">4</span><h2>Payroll</h2><p>Payroll periods and records.</p><span class="go">Open &rarr;</span></a></li>
+</ul>
+{% endblock %}

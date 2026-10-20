@@ -1,98 +1,44 @@
+"""Role-based access helpers for both normal Django views and DRF views."""
 from functools import wraps
-from django.contrib.auth.mixins import AccessMixin
+
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission
+
+from .models import User
 
 
-class RoleRequiredMixin(AccessMixin):
-    """CBV Mixin to restrict view access to specific roles."""
-    allowed_roles = []
+def role_required(*roles):
+    """
+    Django view decorator.
 
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return self.handle_no_permission()
+    Anonymous users are redirected to the login page; logged-in users whose role
+    is not in `roles` get a 403 response.
+    """
 
-        if request.user.is_superuser:
-            return super().dispatch(request, *args, **kwargs)
-
-        user_role = getattr(request.user, 'role', None)
-        if user_role not in self.allowed_roles:
-            raise PermissionDenied("You do not have permission to view this resource.")
-
-        return super().dispatch(request, *args, **kwargs)
-
-
-class AdminRequiredMixin(RoleRequiredMixin):
-    allowed_roles = ['ADMIN']
-
-
-class HRRequiredMixin(RoleRequiredMixin):
-    allowed_roles = ['HR', 'ADMIN']
-
-
-class EmployeeRequiredMixin(RoleRequiredMixin):
-    allowed_roles = ['EMPLOYEE', 'HR', 'ADMIN']
-
-
-def role_required(allowed_roles):
-    """FBV Decorator to restrict view access to specific roles."""
     def decorator(view_func):
         @wraps(view_func)
-        def _wrapped_view(request, *args, **kwargs):
-            if not request.user.is_authenticated:
-                return redirect('accounts:login')
-            if request.user.is_superuser or request.user.role in allowed_roles:
-                return view_func(request, *args, **kwargs)
-            raise PermissionDenied("You do not have permission to access this page.")
-        return _wrapped_view
+        def _wrapped(request, *args, **kwargs):
+            if request.user.role not in roles:
+                raise PermissionDenied
+            return view_func(request, *args, **kwargs)
+
+        return login_required(_wrapped)
+
     return decorator
 
 
-def hr_or_admin_required(view_func):
-    return role_required(['HR', 'ADMIN'])(view_func)
+class _RolePermission(BasePermission):
+    allowed_roles = ()
 
-
-def admin_only_required(view_func):
-    return role_required(['ADMIN'])(view_func)
-
-
-# Django REST Framework Permissions
-
-class IsAdminUserRole(permissions.BasePermission):
-    """Allows access only to users with ADMIN role or superusers."""
     def has_permission(self, request, view):
-        return bool(
-            request.user and request.user.is_authenticated and
-            (request.user.role == 'ADMIN' or request.user.is_superuser)
-        )
+        user = request.user
+        return bool(user and user.is_authenticated and user.role in self.allowed_roles)
 
 
-class IsHROrAdminRole(permissions.BasePermission):
-    """Allows access to users with HR or ADMIN roles."""
-    def has_permission(self, request, view):
-        return bool(
-            request.user and request.user.is_authenticated and
-            (request.user.role in ['HR', 'ADMIN'] or request.user.is_superuser)
-        )
+class IsAdminRole(_RolePermission):
+    allowed_roles = (User.Role.ADMIN,)
 
 
-class IsEmployeeOwnerOrHROrAdmin(permissions.BasePermission):
-    """
-    Object-level permission allowing an employee to access their own records,
-    or allowing HR/Admin to access any record.
-    """
-    def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated)
-
-    def has_object_permission(self, request, view, obj):
-        if request.user.is_superuser or request.user.role in ['HR', 'ADMIN']:
-            return True
-
-        # Check if the object is an Employee or linked to an Employee
-        if hasattr(obj, 'user'):
-            return obj.user == request.user
-        if hasattr(obj, 'employee'):
-            return obj.employee.user == request.user
-
-        return False
+class IsHROrAdmin(_RolePermission):
+    allowed_roles = (User.Role.ADMIN, User.Role.HR)

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Payroll - Smart HR{% endblock %}
+{% block nav_payroll %} aria-current="page"{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Admin and HR only</p>
+  <h1>Payroll</h1>
+  <p class="lede">Payroll periods for your organisation. Employees cannot see this page.</p>
+</section>
+<section class="panel">
+  <h2>Recent payroll periods</h2>
+  {% if periods %}
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Period</th><th scope="col">Start</th><th scope="col">End</th><th scope="col">Status</th></tr></thead>
+    <tbody>
+      {% for p in periods %}
+      <tr><td>{{ p.label }}</td><td>{{ p.start_date }}</td><td>{{ p.end_date }}</td><td><span class="pill {{ p.status }}">{{ p.get_status_display }}</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+    <p class="empty">No payroll periods yet.</p>
+  {% endif %}
+  <p class="note">Salary records and payslips are not available yet.</p>
+</section>
+{% endblock %}

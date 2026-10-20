@@ -1,34 +1,30 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
 
+class HRUserManager(UserManager):
+    """Superusers created from the command line are always Admins."""
+
+    def create_superuser(self, username, email=None, password=None, **extra_fields):
+        extra_fields.setdefault("role", self.model.Role.ADMIN)
+        return super().create_superuser(username, email, password, **extra_fields)
+
+
 class User(AbstractUser):
+    """Login account. The `role` field drives all role-based access control."""
+
     class Role(models.TextChoices):
-        ADMIN = 'ADMIN', 'Administrator'
-        HR = 'HR', 'HR Manager'
-        EMPLOYEE = 'EMPLOYEE', 'Employee'
+        ADMIN = "admin", "Admin"
+        HR = "hr", "HR"
+        EMPLOYEE = "employee", "Employee"
 
-    role = models.CharField(
-        max_length=20,
-        choices=Role.choices,
-        default=Role.EMPLOYEE,
-        help_text='Designates the role and dashboard permissions for this user.'
-    )
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.EMPLOYEE)
 
-    class Meta:
-        ordering = ['username']
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
-
-    def __str__(self):
-        return f"{self.username} ({self.get_role_display()})"
+    objects = HRUserManager()
 
     @property
     def is_admin_role(self):
-        return self.role == self.Role.ADMIN or self.is_superuser
+        return self.role == self.Role.ADMIN
 
     @property
     def is_hr_role(self):
@@ -38,7 +34,5 @@ class User(AbstractUser):
     def is_employee_role(self):
         return self.role == self.Role.EMPLOYEE
 
-    @property
-    def has_hr_privileges(self):
-        """Returns True if user is either HR or Admin"""
-        return self.role in [self.Role.HR, self.Role.ADMIN] or self.is_superuser
+    def __str__(self):
+        return f"{self.get_username()} ({self.get_role_display()})"

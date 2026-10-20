@@ -244,3 +244,7 @@ Thumbs.db
 # Generated reports and payslips (may contain personal data)
 exports/
 payslips/
+
+# Generated reports and payslips (may contain personal data)
+exports/
+payslips/

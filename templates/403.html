@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Access denied - Smart HR{% endblock %}
+{% block content %}
+<div class="denied">
+  <p class="eyebrow">Error 403</p>
+  <h1>This page is not for your role</h1>
+  <p class="lede" style="margin-inline:auto">Your account does not have permission to open it. If you think that is a mistake, ask HR.</p>
+  <p style="margin-top:24px"><a class="button" href="{% url 'dashboard' %}">Back to my dashboard</a></p>
+</div>
+{% endblock %}
