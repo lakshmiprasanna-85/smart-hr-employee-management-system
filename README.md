@@ -42,7 +42,7 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
   reject; the owner (or Admin/HR) may cancel a pending request. Every status
   change is validated against the state machine in
   `apps/leave_management/states.py` and written to `LeaveStatusHistory`.
-* 15 additional tests covering the directory privacy boundary, attendance
+* 17 additional tests covering the directory privacy boundary, attendance
   rules and the leave approval workflow (50 tests in total).
 
 ## Prerequisites
