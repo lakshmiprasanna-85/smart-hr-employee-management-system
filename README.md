@@ -42,8 +42,8 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
   reject; the owner (or Admin/HR) may cancel a pending request. Every status
   change is validated against the state machine in
   `apps/leave_management/states.py` and written to `LeaveStatusHistory`.
-* 15 additional tests covering the directory privacy boundary, attendance
-  rules and the leave approval workflow (48 tests in total).
+* 17 additional tests covering the directory privacy boundary, attendance
+  rules and the leave approval workflow (50 tests in total).
 
 ## Prerequisites
 
@@ -219,7 +219,7 @@ requirements.txt         Python dependencies
 * Payslip generation, e-mail sending, charts and CSV/PDF export are not built yet.
 * Attendance and leave are exposed through the API only; web screens for them
   are planned for a later sprint.
-* Tests run on whichever database `.env` selects; all 48 pass on SQLite.
+* Tests run on whichever database `.env` selects; all 50 pass on SQLite.
 * Screenshots, KPI definitions and deployment notes are added in Week 4.
 
 ## Contributors
