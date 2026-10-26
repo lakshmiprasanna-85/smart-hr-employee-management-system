@@ -45,6 +45,22 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 * 17 additional tests covering the directory privacy boundary, attendance
   rules and the leave approval workflow (50 tests in total).
 
+## Screenshots
+
+| Login | Admin dashboard |
+|---|---|
+| ![Login page](docs/screenshots/01-login.png) | ![Admin dashboard](docs/screenshots/02-admin-dashboard.png) |
+
+| Payroll (Admin and HR only) | Employee dashboard |
+|---|---|
+| ![Payroll page](docs/screenshots/03-payroll-page.png) | ![Employee dashboard](docs/screenshots/04-employee-dashboard.png) |
+
+| Access denied (Employee opening /payroll/) | Employee dashboard on a phone |
+|---|---|
+| ![Access denied](docs/screenshots/05-access-denied.png) | ![Employee dashboard on mobile](docs/screenshots/06-employee-dashboard-mobile.png) |
+
+A step-by-step walkthrough for showing the app is in [docs/demo_script.md](docs/demo_script.md).
+
 ## Prerequisites
 
 * Python 3.11 or newer
@@ -220,7 +236,7 @@ requirements.txt         Python dependencies
 * Attendance and leave are exposed through the API only; web screens for them
   are planned for a later sprint.
 * Tests run on whichever database `.env` selects; all 50 pass on SQLite.
-* Screenshots, KPI definitions and deployment notes are added in Week 4.
+* KPI definitions and deployment notes are added in Week 4.
 
 ## Contributors
 
