@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ user.first_name|default:user.get_username }},
+
+Your payslip for {{ period }} is now available.
+
+Log in to download it:
+{{ site_url }}/payroll/my/
+
+For your privacy this email does not contain any salary figures.
+
+Smart HR
+{% endautoescape %}

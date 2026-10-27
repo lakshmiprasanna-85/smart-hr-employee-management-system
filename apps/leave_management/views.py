@@ -13,6 +13,7 @@ from .serializers import (
     LeaveRequestSerializer,
     LeaveStatusHistorySerializer,
 )
+from .notifications import notify_leave_decision
 from .services import LeaveTransitionError, decide
 from .states import LeaveStatus
 
@@ -80,6 +81,8 @@ class LeaveRequestDecisionView(APIView):
             decide(leave_request, to_status, request.user, note)
         except LeaveTransitionError as exc:
             return Response({"detail": str(exc)}, status=409)
+        # Sent after the decision is saved; an email problem never undoes the decision.
+        notify_leave_decision(leave_request)
         return Response(LeaveRequestSerializer(leave_request).data)
 
 
