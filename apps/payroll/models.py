@@ -102,7 +102,7 @@ class PayrollRecord(models.Model):
     )
     paid_on = models.DateField(null=True, blank=True)
 
-    # Payslip metadata (the generator itself is built in Week 3)
+    # Payslip metadata (the PDF is built by apps/payroll/payslips.py)
     payslip_file = models.FileField(upload_to="payslips/", blank=True)
     payslip_generated_at = models.DateTimeField(null=True, blank=True)
 
@@ -123,3 +123,23 @@ class PayrollRecord(models.Model):
 
     def __str__(self):
         return f"{self.employee.employee_code} {self.period} net={self.net_amount}"
+
+
+class PayrollRecordLine(models.Model):
+    """
+    One earning or deduction on a payroll record.
+
+    Lines are a snapshot taken when payroll is generated, so a payslip keeps
+    showing what was paid even if the employee's salary components change later.
+    """
+
+    record = models.ForeignKey(PayrollRecord, on_delete=models.CASCADE, related_name="lines")
+    name = models.CharField(max_length=60)
+    component_type = models.CharField(max_length=10, choices=SalaryComponent.ComponentType.choices)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        ordering = ["component_type", "name"]
+
+    def __str__(self):
+        return f"{self.record_id} {self.name}: {self.amount}"
