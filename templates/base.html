@@ -15,6 +15,7 @@
   <nav aria-label="Main">
     <a href="{% url 'home' %}"{% block nav_home %}{% endblock %}>Dashboard</a>
     {% if user.role == 'admin' or user.role == 'hr' %}<a href="{% url 'payroll-home' %}"{% block nav_payroll %}{% endblock %}>Payroll</a>{% endif %}
+    <a href="{% url 'payroll-my' %}"{% block nav_payslips %}{% endblock %}>My payslips</a>
     {% if user.role == 'admin' %}<a href="{% url 'admin:index' %}">User admin</a>{% endif %}
   </nav>
   <div class="me">
@@ -28,7 +29,7 @@
   {% endif %}
 </div></header>
 <main class="page">
-  {% if messages %}{% for message in messages %}<p class="message">{{ message }}</p>{% endfor %}{% endif %}
+  {% if messages %}{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
   {% block content %}{% endblock %}
 </main>
 {% endblock %}

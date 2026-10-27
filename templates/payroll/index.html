@@ -5,22 +5,36 @@
 <section class="hero">
   <p class="eyebrow">Admin and HR only</p>
   <h1>Payroll</h1>
-  <p class="lede">Payroll periods for your organisation. Employees cannot see this page.</p>
+  <p class="lede">Create a payroll period, generate each employee's pay, issue payslips and mark payments. Employees cannot see this page.</p>
 </section>
 <section class="panel">
-  <h2>Recent payroll periods</h2>
+  <h2>Payroll periods</h2>
   {% if periods %}
   <div class="table-wrap"><table>
-    <thead><tr><th scope="col">Period</th><th scope="col">Start</th><th scope="col">End</th><th scope="col">Status</th></tr></thead>
+    <thead><tr><th scope="col">Period</th><th scope="col">Start</th><th scope="col">End</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Open</span></th></tr></thead>
     <tbody>
       {% for p in periods %}
-      <tr><td>{{ p.label }}</td><td>{{ p.start_date }}</td><td>{{ p.end_date }}</td><td><span class="pill {{ p.status }}">{{ p.get_status_display }}</span></td></tr>
+      <tr><td><a href="{% url 'payroll-period' p.pk %}">{{ p.label }}</a></td><td>{{ p.start_date }}</td><td>{{ p.end_date }}</td><td><span class="pill {{ p.status }}">{{ p.get_status_display }}</span></td><td class="right"><a href="{% url 'payroll-period' p.pk %}">Open</a></td></tr>
       {% endfor %}
     </tbody>
   </table></div>
   {% else %}
-    <p class="empty">No payroll periods yet.</p>
+    <p class="empty">No payroll periods yet. Create the first one below.</p>
   {% endif %}
-  <p class="note">Salary records and payslips are not available yet.</p>
+</section>
+<section class="panel">
+  <h2>New payroll period</h2>
+  <form method="post" class="inline-form">
+    {% csrf_token %}
+    <div><label for="year">Year</label><input id="year" name="year" type="number" min="2000" max="2100" required></div>
+    <div><label for="month">Month</label>
+      <select id="month" name="month" required>
+        <option value="" disabled selected>Choose</option>
+        {% for n, name in months %}<option value="{{ n }}">{{ name }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="button btn-inline">Create period</button>
+  </form>
+  <p class="note">Start and end dates are filled in from the month.</p>
 </section>
 {% endblock %}
