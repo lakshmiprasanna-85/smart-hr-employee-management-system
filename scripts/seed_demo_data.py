@@ -1,6 +1,7 @@
 """
-Create synthetic demo data: one login per role, departments, employee profiles
-and leave types. Safe to run more than once (it never creates duplicates).
+Create synthetic demo data: one login per role, departments, employee profiles,
+leave types, salary components and two payroll periods with payslips. Safe to run
+more than once (it never creates duplicates).
 
 Run from the project root:
 
@@ -26,6 +27,9 @@ django.setup()
 from apps.accounts.models import User  # noqa: E402
 from apps.employees.models import Department, Employee  # noqa: E402
 from apps.leave_management.models import LeaveType  # noqa: E402
+from apps.payroll.models import EmployeeSalaryComponent, PayrollPeriod, PayrollRecord, SalaryComponent  # noqa: E402
+from apps.payroll.payslips import generate_payslips_for_period  # noqa: E402
+from apps.payroll.services import close_period, create_period, generate_payroll, set_payment_status  # noqa: E402
 
 PASSWORD = os.environ.get("SEED_PASSWORD", "Demo@12345")
 
@@ -50,6 +54,65 @@ PEOPLE = [
     ("employee_demo", "Subhankar", "Khatua", User.Role.EMPLOYEE, "EMP003", "Engineering", "Software Engineer", date(2024, 1, 15)),
     ("employee_demo2", "Prajwal", "Nitin", User.Role.EMPLOYEE, "EMP004", "Finance", "Accountant", date(2024, 8, 5)),
 ]
+
+
+EARNING, DEDUCTION = SalaryComponent.ComponentType.EARNING, SalaryComponent.ComponentType.DEDUCTION
+FIXED, PERCENT = SalaryComponent.CalculationType.FIXED, SalaryComponent.CalculationType.PERCENT_OF_BASIC
+
+# (name, type, calculation, default). A PERCENT value is a percentage of Basic.
+SALARY_COMPONENTS = [
+    ("Basic", EARNING, FIXED, 0),
+    ("HRA", EARNING, PERCENT, 40),
+    ("Special Allowance", EARNING, FIXED, 0),
+    ("Provident Fund", DEDUCTION, PERCENT, 12),
+    ("Professional Tax", DEDUCTION, FIXED, 200),
+]
+
+# employee code -> (basic, special allowance). All figures are made up.
+SALARIES = {
+    "EMP001": (90000, 10000),
+    "EMP002": (75000, 8000),
+    "EMP003": (60000, 6000),
+    "EMP004": (50000, 5000),
+}
+
+# (year, month, mark everything paid and close it?)
+PAYROLL_PERIODS = [(2026, 8, True), (2026, 9, False)]
+
+
+def seed_payroll():
+    components = {}
+    for name, kind, calc, default in SALARY_COMPONENTS:
+        components[name], _ = SalaryComponent.objects.get_or_create(
+            name=name,
+            defaults={"component_type": kind, "calculation_type": calc, "default_value": default},
+        )
+
+    for code, (basic, special) in SALARIES.items():
+        employee = Employee.objects.get(employee_code=code)
+        values = {
+            "Basic": basic,
+            "HRA": components["HRA"].default_value,
+            "Special Allowance": special,
+            "Provident Fund": components["Provident Fund"].default_value,
+            "Professional Tax": components["Professional Tax"].default_value,
+        }
+        for name, value in values.items():
+            EmployeeSalaryComponent.objects.get_or_create(
+                employee=employee, component=components[name], defaults={"value": value}
+            )
+
+    for year, month, finished in PAYROLL_PERIODS:
+        period = PayrollPeriod.objects.filter(year=year, month=month).first() or create_period(year, month)
+        if period.status == PayrollPeriod.Status.CLOSED:
+            continue
+        generate_payroll(period)
+        generate_payslips_for_period(period, notify=False)  # no emails while seeding
+        if finished:
+            for record in period.records.filter(payment_status=PayrollRecord.PaymentStatus.PENDING):
+                set_payment_status(record, PayrollRecord.PaymentStatus.PAID)
+            close_period(period)
+        print(f"payroll {period.label}: {period.records.count()} records, status={period.status}")
 
 
 def main():
@@ -91,6 +154,8 @@ def main():
             },
         )
         print(f"{'created' if created else 'exists '}  {username:<15} role={role}")
+
+    seed_payroll()
 
     print(f"\nDemo password for newly created accounts: {PASSWORD}")
 
