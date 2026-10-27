@@ -25,10 +25,11 @@ already have automated tests in `tests/`.
 | View / correct anyone's attendance | Yes | Yes | No | 2 | Corrections are audited |
 | Apply for / cancel own leave | Own | Own | Own | 2 | Needs an employee profile |
 | Approve / reject leave | Yes | Yes | No | 2 | Proposed: never your own request |
-| Payroll periods and salary components | Yes | Yes | No | 3 | |
-| Manage payroll records | Yes | Yes | No | 3 | |
-| Download payslip | All | All | Own | 3 | Permission-checked view, not a static URL |
-| View notification logs | Yes | No | No | 3 | |
+| Payroll periods and salary components | Yes | Yes | No | 3 | Enforced and tested; salary changes are audited |
+| Manage payroll records (generate, mark paid, close period) | Yes | Yes | No | 3 | Enforced and tested; status changes are audited |
+| Download payslip | All | All | Own | 3 | Permission-checked view, not a static URL; other people's payslips return 404; tested |
+| My payslips page `/payroll/my/` | Own | Own | Own | 3 | Login required; lists only the viewer's own records |
+| View notification logs | Yes | No | No | 3 | Read-only in the Django admin site |
 | Dashboards charts and CSV/Excel/PDF exports | Yes | Yes | No | 4 | |
 
 Admin and HR rows marked "Own" apply only when that user also has an Employee
