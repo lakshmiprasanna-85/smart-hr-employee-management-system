@@ -61,16 +61,27 @@ Workflows to show with the API (or Django admin for the data):
 2. Log in as `admin_demo` and open http://127.0.0.1:8000/admin/ and then **Audit events**.
 3. You see a login event for the successful logins, and an event with `{"result": "failed", "username": "employee_demo"}` for the failed attempt. The password is never stored.
 
-## 5. Tests
+## 5. Payroll, payslips and e-mail (Week 3)
+
+1. Log in as `hr_demo` and click **Payroll**. You see the August period (closed) and the September period (open).
+2. Open September. Each employee has gross pay, deductions and net pay. Click **Mark paid** on one row, then try **Close period**: it refuses while another record is still pending.
+3. Click **Download** on a payslip. A PDF opens with the earnings, deductions and net pay.
+4. Open `/admin/` as `admin_demo` and then **Audit events**: the payment status change is there with who did it. In the terminal running the server you can also see the e-mail printed when a payslip or a leave decision is sent; **Notification logs** in the admin shows each one as sent or failed.
+5. Log in as `employee_demo` and click **My payslips**. Only that employee's own payslips are listed. Try a colleague's payslip address (change the number in `/payroll/payslips/<id>/download/`): the answer is "not found".
+6. Try http://127.0.0.1:8000/media/payslips/2026-09-EMP003.pdf: it is not found, because payslips are never served from a public address.
+
+What to point out: pay is calculated from salary components (a percentage of Basic or a fixed amount), paid records are final, every sensitive change is audited, and payslip e-mails contain no salary figures.
+
+## 6. Tests
 
 ```
 python -m pytest
 ```
 
-All tests pass (53 at the time of writing). They cover authentication, the role matrix, model rules, payroll access, the Week 2 workflows and login auditing.
+All tests pass (123 at the time of writing). They cover authentication, the role matrix, model rules, the Week 2 workflows, login auditing, payroll rules, payslip generation and download access, e-mail notifications and the payroll pages.
 
 ## Notes for questions
 
 * Passwords are hashed by Django; secrets live in `.env`, which is never committed.
 * The database is PostgreSQL (SQLite works for a quick local start).
-* Payroll pages, payslips and e-mail notifications are Week 3; charts and reports are Week 4.
+* Charts, downloadable reports and the deployment guide are Week 4.

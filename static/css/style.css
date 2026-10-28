@@ -105,3 +105,24 @@ input:focus{outline:3px solid var(--plum-soft);border-color:var(--plum)}
   .panel{padding:4px 18px 18px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Payroll pages */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.right{text-align:right}
+.muted{color:var(--ink-2);font-size:.88rem}
+.message.error{background:#fbe4e1;color:#8a2a1f}
+.pill.paid{background:var(--ok-bg);color:var(--ok)}
+.pill.pending{background:var(--sand);color:var(--warn)}
+.pill.on_hold{background:var(--mist);color:#44507a}
+.hero h1 .pill{font:600 .78rem var(--sans);vertical-align:middle;margin:0 0 0 10px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.actions form{margin:0}
+.button.btn-inline{width:auto;margin-top:0;padding:9px 18px;font-size:.92rem}
+.button.btn-quiet{background:#fff;color:var(--plum-dark);border:1px solid var(--line)}
+.button.btn-quiet:hover{background:var(--plum-soft);color:var(--plum-dark)}
+.inline-form{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;padding-bottom:4px}
+.inline-form label{margin-top:10px}
+.inline-form input,.inline-form select{padding:9px 12px;font:inherit;border:1px solid var(--line);border-radius:3px;background:#fff;color:var(--ink);min-width:130px}
+.row-actions{white-space:nowrap}
+.row-actions form{display:inline-block;margin:0 0 0 6px}
+td form{margin:0}

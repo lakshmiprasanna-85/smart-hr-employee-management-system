@@ -23,3 +23,16 @@ class AuditEventAdmin(admin.ModelAdmin):
 class NotificationLogAdmin(admin.ModelAdmin):
     list_display = ("created_at", "notification_type", "recipient_email", "status")
     list_filter = ("status", "notification_type")
+    readonly_fields = (
+        "notification_type", "recipient", "recipient_email", "subject",
+        "status", "error_message", "created_at", "sent_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

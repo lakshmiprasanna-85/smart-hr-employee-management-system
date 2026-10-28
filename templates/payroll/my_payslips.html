@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}My payslips - Smart HR{% endblock %}
+{% block nav_payslips %} aria-current="page"{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">My space</p>
+  <h1>My payslips</h1>
+  <p class="lede">Only you can see your own payslips.</p>
+</section>
+<section class="panel">
+  <h2>Payslips</h2>
+  {% if records %}
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Period</th><th scope="col" class="right">Net pay (INR)</th><th scope="col">Payment</th><th scope="col">Payslip</th></tr></thead>
+    <tbody>
+      {% for r in records %}
+      <tr>
+        <td>{{ r.period.label }}</td>
+        <td class="right"><b>{{ r.net_amount }}</b></td>
+        <td><span class="pill {{ r.payment_status }}">{{ r.get_payment_status_display }}</span></td>
+        <td>{% if r.payslip_file %}<a href="{% url 'payslip-download' r.pk %}">Download PDF</a>{% else %}<span class="muted">Not issued yet</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+    <p class="empty">You have no payroll records yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% autoescape off %}Hello {{ user.first_name|default:user.get_username }},
+
+Your {{ leave_type }} request for {{ start_date }} to {{ end_date }} ({{ days }} day{{ days|pluralize }}) has been {{ decision }}.
+{% if note %}
+Note from the reviewer: {{ note }}
+{% endif %}
+Smart HR
+{% endautoescape %}

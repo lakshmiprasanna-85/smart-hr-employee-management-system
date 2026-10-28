@@ -12,7 +12,7 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 |------|-------|--------|
 | 1 | Requirements, data model, authentication, role-aware dashboards, tests | Done |
 | 2 | Employee, attendance and leave workflows | Done |
-| 3 | Payroll, payslips, e-mail notifications | Planned |
+| 3 | Payroll, payslips, e-mail notifications | Done |
 | 4 | Charts, reports, security review, final docs | Planned |
 
 ### What Week 1 delivers
@@ -45,19 +45,46 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 * 17 additional tests covering the directory privacy boundary, attendance
   rules and the leave approval workflow (50 tests in total).
 
+### What Week 3 delivers
+
+* **Salary setup (Admin/HR):** a catalogue of salary components (earnings and
+  deductions, fixed or a percentage of Basic) and each employee's values.
+  Every change is written to the audit log.
+* **Payroll periods and records:** create a period for a month, then generate
+  the payroll for everyone who has salary set up. Re-running is safe: paid
+  records are never changed, unpaid records are refreshed, and anything that
+  cannot be calculated is reported. Payment status moves pending, on hold,
+  paid (paid is final); a period can be closed only when nothing is pending.
+* **Payslips:** a PDF per payroll record built from a snapshot of its salary
+  lines. Employees download only their own (`/payroll/my/`); Admin and HR can
+  download any. Files are served through a permission-checked view, never
+  from a public media URL.
+* **E-mail notifications:** employees are e-mailed when a payslip is issued
+  (no salary figures in the e-mail) and when a leave request is approved or
+  rejected. Every attempt is stored in `NotificationLog` as sent or failed; a
+  mail outage never breaks the action that triggered it.
+* **Pages:** Payroll (periods, records, payslips, payment status) for Admin/HR
+  and My payslips for everyone.
+* Tests for payroll rules, payslips, access restrictions, notifications and the
+  pages (all tests pass; see Run the tests).
+
 ## Screenshots
 
 | Login | Admin dashboard |
 |---|---|
 | ![Login page](docs/screenshots/01-login.png) | ![Admin dashboard](docs/screenshots/02-admin-dashboard.png) |
 
-| Payroll (Admin and HR only) | Employee dashboard |
+| Payroll period (Admin and HR only) | Employee dashboard |
 |---|---|
-| ![Payroll page](docs/screenshots/03-payroll-page.png) | ![Employee dashboard](docs/screenshots/04-employee-dashboard.png) |
+| ![Payroll period page](docs/screenshots/03-payroll-page.png) | ![Employee dashboard](docs/screenshots/04-employee-dashboard.png) |
 
 | Access denied (Employee opening /payroll/) | Employee dashboard on a phone |
 |---|---|
 | ![Access denied](docs/screenshots/05-access-denied.png) | ![Employee dashboard on mobile](docs/screenshots/06-employee-dashboard-mobile.png) |
+
+| My payslips (each employee sees only their own) | Sample payslip PDF (synthetic data) |
+|---|---|
+| ![My payslips](docs/screenshots/07-my-payslips.png) | ![Sample payslip PDF](docs/screenshots/08-payslip-pdf.png) |
 
 A step-by-step walkthrough for showing the app is in [docs/demo_script.md](docs/demo_script.md).
 
@@ -105,7 +132,8 @@ lists every variable with placeholder values.
 | `LOG_LEVEL` | Logging level. | `INFO` |
 | `DB_ENGINE` | `sqlite` or `postgres`. | `sqlite` |
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` | PostgreSQL connection (used when `DB_ENGINE=postgres`). | `smart_hr`, `postgres`, empty, `localhost`, `5432` |
-| `EMAIL_*`, `DEFAULT_FROM_EMAIL` | E-mail settings (used from Week 3). | console backend |
+| `EMAIL_*`, `DEFAULT_FROM_EMAIL` | E-mail settings for notifications. | console backend (prints e-mails in the terminal) |
+| `SITE_URL` | Base address used for links inside e-mails. | `http://localhost:8000` |
 | `SEED_PASSWORD` | Password for demo accounts created by the seed script. | `Demo@12345` |
 
 Generate a secret key with:
@@ -149,8 +177,9 @@ python manage.py migrate
 
 ## Demo data
 
-Creates one login per role, three departments, employee profiles and four
-leave types. All data is synthetic. Safe to re-run.
+Creates one login per role, three departments, employee profiles, four
+leave types, salary components and two payroll periods (August closed and
+paid, September open) with payslips. All data is synthetic. Safe to re-run.
 
 ```
 python scripts/seed_demo_data.py
@@ -179,7 +208,9 @@ Open http://127.0.0.1:8000/ and log in. Each role lands on its own dashboard:
 | `/dashboard/admin/` | yes | no | no |
 | `/dashboard/hr/` | yes | yes | no |
 | `/dashboard/employee/` | yes | yes | yes |
-| `/payroll/` | yes | yes | no |
+| `/payroll/` and `/payroll/periods/<id>/` | yes | yes | no |
+| `/payroll/my/` | own | own | own |
+| `/payroll/payslips/<id>/download/` | any | any | own |
 | `/api/accounts/me/` | yes | yes | yes |
 | `/api/employees/employees/` | full | full | directory only |
 | `/api/attendance/checkin/`, `/checkout/` | own | own | own |
@@ -187,7 +218,10 @@ Open http://127.0.0.1:8000/ and log in. Each role lands on its own dashboard:
 | `/api/attendance/summary/` | yes | yes | no |
 | `/api/leave/requests/` | all | all | own |
 | `/api/leave/requests/<id>/decide/` | decide | decide | cancel own |
-| `/api/payroll/records/` | all rows | all rows | own rows |
+| `/api/payroll/records/` (`?period=YYYY-MM`) | all rows | all rows | own rows |
+| `/api/payroll/records/<id>/status/` | yes | yes | no |
+| `/api/payroll/periods/` and `.../<id>/generate/`, `/payslips/`, `/close/` | yes | yes | no |
+| `/api/payroll/components/` and `/api/payroll/employee-salary/` | yes | yes | no |
 | `/admin/` (Django admin) | yes | no | no |
 
 ## Run the tests
@@ -208,9 +242,9 @@ apps/
   employees/             Department, Employee
   attendance/            Attendance
   leave_management/      LeaveType, LeaveRequest, LeaveStatusHistory, state rules
-  payroll/               PayrollPeriod, SalaryComponent, PayrollRecord, payroll page + API
-  reports/               AuditEvent, NotificationLog, audit service
-templates/               HTML templates (base, login, dashboards, payroll, 403)
+  payroll/               Periods, salary components, records, payslip PDFs, pages + API
+  reports/               AuditEvent, NotificationLog, audit and e-mail services
+templates/               HTML templates (base, login, dashboards, payroll, e-mails, 403)
 static/                  CSS
 tests/                   pytest test suite
 scripts/                 seed_demo_data.py
@@ -231,11 +265,14 @@ requirements.txt         Python dependencies
 
 ## Known limitations
 
-* The dashboards are shells; the feature cards are placeholders for later weeks.
-* Payslip generation, e-mail sending, charts and CSV/PDF export are not built yet.
+* The Admin, HR and Employee dashboards still show placeholder cards for features planned for Week 4.
+* Charts and CSV/Excel/PDF report exports are not built yet (Week 4).
+* Payroll is a full month per employee: there is no proration for part-month joiners, no tax slabs and no overtime.
+* E-mails are sent straight away, not through a background queue (Celery/Redis); failures are logged and can be re-tried by regenerating.
+* Salary components, periods and records are managed through the pages and API; there is no bulk import.
 * Attendance and leave are exposed through the API only; web screens for them
   are planned for a later sprint.
-* Tests run on whichever database `.env` selects; all 50 pass on SQLite.
+* Tests run on whichever database `.env` selects; the full suite passes on SQLite.
 * KPI definitions and deployment notes are added in Week 4.
 
 ## Contributors

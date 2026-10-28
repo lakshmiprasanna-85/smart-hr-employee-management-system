@@ -18,6 +18,7 @@ erDiagram
     SALARY_COMPONENT ||--o{ EMPLOYEE_SALARY_COMPONENT : defines
     EMPLOYEE ||--o{ PAYROLL_RECORD : "is paid via"
     PAYROLL_PERIOD ||--o{ PAYROLL_RECORD : groups
+    PAYROLL_RECORD ||--o{ PAYROLL_RECORD_LINE : "is made of"
     USER |o--o{ AUDIT_EVENT : performs
     USER |o--o{ NOTIFICATION_LOG : receives
 
@@ -117,6 +118,13 @@ erDiagram
         file payslip_file
         datetime payslip_generated_at
     }
+    PAYROLL_RECORD_LINE {
+        int id PK
+        int record_id FK
+        string name
+        string component_type "earning, deduction"
+        decimal amount
+    }
     AUDIT_EVENT {
         int id PK
         int actor_id FK
@@ -146,7 +154,7 @@ erDiagram
 | `employees` | `Department`, `Employee` |
 | `attendance` | `Attendance` |
 | `leave_management` | `LeaveType`, `LeaveRequest`, `LeaveStatusHistory` |
-| `payroll` | `PayrollPeriod`, `SalaryComponent`, `EmployeeSalaryComponent`, `PayrollRecord` |
+| `payroll` | `PayrollPeriod`, `SalaryComponent`, `EmployeeSalaryComponent`, `PayrollRecord`, `PayrollRecordLine` |
 | `reports` | `AuditEvent`, `NotificationLog` |
 
 ## Integrity rules enforced by the database
@@ -168,6 +176,7 @@ erDiagram
 
 * `Employee.department` is `SET_NULL`: removing a department keeps its people.
 * `Employee.user` is `CASCADE`: an employee record has no meaning without its login.
+* `PayrollRecordLine.record` is `CASCADE`: the lines are a snapshot owned by their record.
 * `PayrollRecord.employee` and `.period` are `PROTECT`: payroll history cannot be
   lost by deleting an employee or a period.
 * `LeaveRequest.leave_type` and `EmployeeSalaryComponent.component` are `PROTECT`:

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Payroll {{ period.label }} - Smart HR{% endblock %}
+{% block nav_payroll %} aria-current="page"{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Payroll period</p>
+  <h1>{{ period.label }} <span class="pill {{ period.status }}">{{ period.get_status_display }}</span></h1>
+  <p class="lede">{{ period.start_date }} to {{ period.end_date }}. <a href="{% url 'payroll-home' %}">All periods</a></p>
+  {% if period.status == 'open' %}
+  <div class="actions">
+    <form method="post" action="{% url 'payroll-period-generate' period.pk %}">{% csrf_token %}<button class="button btn-inline" type="submit">Generate payroll</button></form>
+    <form method="post" action="{% url 'payroll-period-payslips' period.pk %}">{% csrf_token %}<button class="button btn-inline btn-quiet" type="submit">Generate payslips</button></form>
+    <form method="post" action="{% url 'payroll-period-close' period.pk %}">{% csrf_token %}<button class="button btn-inline btn-quiet" type="submit">Close period</button></form>
+  </div>
+  {% endif %}
+</section>
+<section class="panel">
+  <h2>Payroll records</h2>
+  {% if records %}
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Employee</th><th scope="col" class="right">Gross</th><th scope="col" class="right">Deductions</th><th scope="col" class="right">Net</th><th scope="col">Payment</th><th scope="col">Payslip</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+    <tbody>
+      {% for r in records %}
+      <tr>
+        <td><b>{{ r.employee.employee_code }}</b><br><span class="muted">{{ r.employee.user.get_full_name|default:r.employee.user.get_username }}</span></td>
+        <td class="right">{{ r.gross_amount }}</td>
+        <td class="right">{{ r.total_deductions }}</td>
+        <td class="right"><b>{{ r.net_amount }}</b></td>
+        <td><span class="pill {{ r.payment_status }}">{{ r.get_payment_status_display }}</span>{% if r.paid_on %}<br><span class="muted">{{ r.paid_on }}</span>{% endif %}</td>
+        <td>
+          {% if r.payslip_file %}<a href="{% url 'payslip-download' r.pk %}">Download</a>
+          {% else %}<form method="post" action="{% url 'payroll-record-payslip' r.pk %}">{% csrf_token %}<button class="link-button" type="submit">Generate</button></form>{% endif %}
+        </td>
+        <td class="right row-actions">
+          {% if r.payment_status == 'pending' %}
+          <form method="post" action="{% url 'payroll-record-status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="paid"><button class="link-button" type="submit">Mark paid</button></form>
+          <form method="post" action="{% url 'payroll-record-status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="on_hold"><button class="link-button" type="submit">Hold</button></form>
+          {% elif r.payment_status == 'on_hold' %}
+          <form method="post" action="{% url 'payroll-record-status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="pending"><button class="link-button" type="submit">Release</button></form>
+          <form method="post" action="{% url 'payroll-record-status' r.pk %}">{% csrf_token %}<input type="hidden" name="status" value="paid"><button class="link-button" type="submit">Mark paid</button></form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="note">Amounts are in INR. Paid records are final and are never changed by a re-run.</p>
+  {% else %}
+    <p class="empty">No payroll records yet. Use "Generate payroll" once salary components are set up for employees.</p>
+  {% endif %}
+</section>
+{% endblock %}
