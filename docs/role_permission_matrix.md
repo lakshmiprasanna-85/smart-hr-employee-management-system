@@ -21,10 +21,12 @@ already have automated tests in `tests/`.
 | Employee and department management | Yes | Yes | No | 2 | |
 | View own profile | Own | Own | Own | 2 | |
 | View other employees' personal details | Yes | Yes | No | 2 | Phone, date of birth, address |
-| Record own attendance | Own | Own | Own | 2 | Needs an employee profile |
-| View / correct anyone's attendance | Yes | Yes | No | 2 | Corrections are audited |
-| Apply for / cancel own leave | Own | Own | Own | 2 | Needs an employee profile |
-| Approve / reject leave | Yes | Yes | No | 2 | Proposed: never your own request |
+| Record own attendance | Own | Own | Own | 2 | Needs an employee profile; page `/attendance/` and API; tested |
+| View anyone's attendance | Yes | Yes | No | 2 | Page `/attendance/team/` and API; tested |
+| Correct anyone's attendance | Yes | Yes | No | 2 | Planned; not built yet |
+| Apply for / cancel own leave | Own | Own | Own | 2 | Needs an employee profile; page `/leave/` and API; tested |
+| Approve / reject leave | Yes | Yes | No | 2 | Never your own request; page `/leave/review/` and API; tested |
+| Employee directory page `/employees/` | Yes | Yes | No | 2 | No personal details on the page; tested |
 | Payroll periods and salary components | Yes | Yes | No | 3 | Enforced and tested; salary changes are audited |
 | Manage payroll records (generate, mark paid, close period) | Yes | Yes | No | 3 | Enforced and tested; status changes are audited |
 | Download payslip | All | All | Own | 3 | Permission-checked view, not a static URL; other people's payslips return 404; tested |

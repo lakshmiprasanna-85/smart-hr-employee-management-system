@@ -61,7 +61,18 @@ Workflows to show with the API (or Django admin for the data):
 2. Log in as `admin_demo` and open http://127.0.0.1:8000/admin/ and then **Audit events**.
 3. You see a login event for the successful logins, and an event with `{"result": "failed", "username": "employee_demo"}` for the failed attempt. The password is never stored.
 
-## 5. Payroll, payslips and e-mail (Week 3)
+## 5. Attendance, leave and the employee directory
+
+1. Log in as `employee_demo`. On the dashboard, **My attendance** and **My leave** are live cards. Open **Attendance** and click **Check in**. The button changes to **Check out**. Try Check in again later: the rule "one check-in per day" is enforced.
+2. Open **Leave**, choose a leave type and dates, and click **Submit request**. Try an end date before the start date: you get a clear message and nothing is saved. Your requests are listed below, and a pending one can be cancelled.
+3. Log in as `hr_demo` and open **Leave** then **Review requests**. Approve one request with a note and reject another. In the terminal running the server you can see the e-mail sent to the employee.
+4. Open **Attendance** then **Team attendance**: who is in today, and the monthly totals.
+5. Open **Employees**: search by name or number and filter by department. Phone numbers and addresses are not shown on this page.
+6. Back on `hr_demo`'s review page, find a request that belongs to `hr_demo` (apply for one first): it says someone else must decide it. Nobody can approve their own request.
+
+What to point out: the pages use the same rules as the API (one check-in a day, the leave state machine, no self-approval), so there is one set of rules, tested once.
+
+## 6. Payroll, payslips and e-mail (Week 3)
 
 1. Log in as `hr_demo` and click **Payroll**. You see the August period (closed) and the September period (open).
 2. Open September. Each employee has gross pay, deductions and net pay. Click **Mark paid** on one row, then try **Close period**: it refuses while another record is still pending.
@@ -72,13 +83,13 @@ Workflows to show with the API (or Django admin for the data):
 
 What to point out: pay is calculated from salary components (a percentage of Basic or a fixed amount), paid records are final, every sensitive change is audited, and payslip e-mails contain no salary figures.
 
-## 6. Tests
+## 7. Tests
 
 ```
 python -m pytest
 ```
 
-All tests pass (123 at the time of writing). They cover authentication, the role matrix, model rules, the Week 2 workflows, login auditing, payroll rules, payslip generation and download access, e-mail notifications and the payroll pages.
+All tests pass (164 at the time of writing). They cover authentication, the role matrix, model rules, the Week 2 workflows, login auditing, payroll rules, payslip generation and download access, e-mail notifications, and the payroll, attendance, leave and employee pages.
 
 ## Notes for questions
 

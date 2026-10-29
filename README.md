@@ -68,6 +68,25 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 * Tests for payroll rules, payslips, access restrictions, notifications and the
   pages (all tests pass; see Run the tests).
 
+### Web pages for attendance, leave and the employee directory
+
+Weeks 2 and 3 built attendance and leave as an API. These pages put screens on
+top of the same code, so the dashboards no longer show placeholder cards for them.
+
+* **Attendance** (`/attendance/`): check in and check out, and your last 31 days.
+  Admin/HR also get **Team attendance** (`/attendance/team/`): who is in today and
+  monthly totals per employee.
+* **Leave** (`/leave/`): apply for leave, follow your requests and cancel one.
+  Admin/HR get **Review requests** (`/leave/review/`) to approve or reject with a
+  note; the employee is e-mailed. Nobody can decide their own request.
+* **Employees** (`/employees/`, Admin/HR only): search and filter the directory.
+  Personal details (phone, birth date, address) are never shown on this page.
+* The pages call the same services and validation as the API, so the rules
+  (one check-in per day, the leave state machine, no self-approval) are written
+  once. The leave permission rules now live in
+  `apps/leave_management/services.py` and are used by both the API and the pages.
+* The seed script adds a few days of attendance and three sample leave requests.
+
 ## Screenshots
 
 | Login | Admin dashboard |
@@ -85,6 +104,14 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 | My payslips (each employee sees only their own) | Sample payslip PDF (synthetic data) |
 |---|---|
 | ![My payslips](docs/screenshots/07-my-payslips.png) | ![Sample payslip PDF](docs/screenshots/08-payslip-pdf.png) |
+
+| Attendance (check in and out) | Leave request form and my requests |
+|---|---|
+| ![Attendance](docs/screenshots/09-attendance.png) | ![Leave request](docs/screenshots/10-leave-request.png) |
+
+| Leave review (Admin and HR) |
+|---|
+| ![Leave review](docs/screenshots/11-leave-review.png) |
 
 A step-by-step walkthrough for showing the app is in [docs/demo_script.md](docs/demo_script.md).
 
@@ -210,6 +237,11 @@ Open http://127.0.0.1:8000/ and log in. Each role lands on its own dashboard:
 | `/dashboard/employee/` | yes | yes | yes |
 | `/payroll/` and `/payroll/periods/<id>/` | yes | yes | no |
 | `/payroll/my/` | own | own | own |
+| `/attendance/` (check in / out) | own | own | own |
+| `/attendance/team/` | yes | yes | no |
+| `/leave/` (apply, cancel) | own | own | own |
+| `/leave/review/` (approve / reject) | yes | yes | no |
+| `/employees/` (directory) | yes | yes | no |
 | `/payroll/payslips/<id>/download/` | any | any | own |
 | `/api/accounts/me/` | yes | yes | yes |
 | `/api/employees/employees/` | full | full | directory only |
@@ -265,13 +297,12 @@ requirements.txt         Python dependencies
 
 ## Known limitations
 
-* The Admin, HR and Employee dashboards still show placeholder cards for features planned for Week 4.
+* The Admin dashboard still shows a placeholder card for Reports and charts (Week 4).
+* HR cannot yet correct an attendance record (the `is_corrected` flag exists, but there is no screen or API for it).
 * Charts and CSV/Excel/PDF report exports are not built yet (Week 4).
 * Payroll is a full month per employee: there is no proration for part-month joiners, no tax slabs and no overtime.
 * E-mails are sent straight away, not through a background queue (Celery/Redis); failures are logged and can be re-tried by regenerating.
 * Salary components, periods and records are managed through the pages and API; there is no bulk import.
-* Attendance and leave are exposed through the API only; web screens for them
-  are planned for a later sprint.
 * Tests run on whichever database `.env` selects; the full suite passes on SQLite.
 * KPI definitions and deployment notes are added in Week 4.
 
