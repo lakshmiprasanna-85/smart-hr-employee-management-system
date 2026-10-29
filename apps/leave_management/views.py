@@ -13,9 +13,7 @@ from .serializers import (
     LeaveRequestSerializer,
     LeaveStatusHistorySerializer,
 )
-from .notifications import notify_leave_decision
-from .services import LeaveTransitionError, decide
-from .states import LeaveStatus
+from .services import LeavePermissionError, LeaveTransitionError, process_decision
 
 
 class LeaveRequestListCreateView(ListCreateAPIView):
@@ -60,29 +58,12 @@ class LeaveRequestDecisionView(APIView):
         to_status = serializer.validated_data["decision"]
         note = serializer.validated_data.get("note", "")
 
-        is_privileged = request.user.role in (User.Role.ADMIN, User.Role.HR)
-        is_owner = leave_request.employee.user_id == request.user.id
-        # Only Admin/HR may approve or reject; they cannot decide their own request.
-        if to_status in (LeaveStatus.APPROVED, LeaveStatus.REJECTED):
-            if is_owner:
-                return Response(
-                    {"detail": "You cannot approve or reject your own leave request."},
-                    status=403,
-                )
-            if not is_privileged:
-                return Response(
-                    {"detail": "Only Admin or HR may decide this request."},
-                    status=403,
-                )
-        if to_status == LeaveStatus.CANCELLED and not (is_privileged or is_owner):
-            return Response({"detail": "You may only cancel your own request."}, status=403)
-
         try:
-            decide(leave_request, to_status, request.user, note)
+            process_decision(request.user, leave_request, to_status, note)
+        except LeavePermissionError as exc:
+            return Response({"detail": str(exc)}, status=403)
         except LeaveTransitionError as exc:
             return Response({"detail": str(exc)}, status=409)
-        # Sent after the decision is saved; an email problem never undoes the decision.
-        notify_leave_decision(leave_request)
         return Response(LeaveRequestSerializer(leave_request).data)
 
 

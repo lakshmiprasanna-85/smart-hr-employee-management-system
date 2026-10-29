@@ -2,12 +2,46 @@
 from django.db import transaction
 from django.utils import timezone
 
+from apps.accounts.models import User
+
 from .models import LeaveStatusHistory
+from .notifications import notify_leave_decision
 from .states import LeaveStatus, can_transition
 
 
 class LeaveTransitionError(Exception):
     """Raised when a requested status change is not allowed."""
+
+
+class LeavePermissionError(Exception):
+    """Raised when this user may not make the requested decision."""
+
+
+def check_decision_allowed(user, leave_request, to_status):
+    """
+    Who may do what (shared by the API and the web pages).
+
+    * Only Admin/HR may approve or reject, and never their own request.
+    * The owner (or Admin/HR) may cancel.
+    """
+    is_privileged = user.role in (User.Role.ADMIN, User.Role.HR)
+    is_owner = leave_request.employee.user_id == user.id
+    if to_status in (LeaveStatus.APPROVED, LeaveStatus.REJECTED):
+        if is_owner:
+            raise LeavePermissionError("You cannot approve or reject your own leave request.")
+        if not is_privileged:
+            raise LeavePermissionError("Only Admin or HR may decide this request.")
+    if to_status == LeaveStatus.CANCELLED and not (is_privileged or is_owner):
+        raise LeavePermissionError("You may only cancel your own request.")
+
+
+def process_decision(user, leave_request, to_status, note=""):
+    """Check permission, move the request, then email the employee about approvals/rejections."""
+    check_decision_allowed(user, leave_request, to_status)
+    decide(leave_request, to_status, user, note)
+    # Sent after the decision is saved; an email problem never undoes the decision.
+    notify_leave_decision(leave_request)
+    return leave_request
 
 
 @transaction.atomic
