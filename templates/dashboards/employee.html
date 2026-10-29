@@ -16,8 +16,8 @@
   {% endif %}
 </section>
 <ul class="tiles">
-  <li><div class="tile is-later"><span class="chip">1</span><h2>My attendance</h2><span class="pill">Not available yet</span></div></li>
-  <li><div class="tile is-later"><span class="chip">2</span><h2>My leave</h2><span class="pill">Not available yet</span></div></li>
+  <li><a class="tile" href="{% url 'attendance-home' %}"><span class="chip">1</span><h2>My attendance</h2><p>Check in, check out and see your days.</p><span class="go">Open &rarr;</span></a></li>
+  <li><a class="tile" href="{% url 'leave-home' %}"><span class="chip">2</span><h2>My leave</h2><p>Apply for leave and follow your requests.</p><span class="go">Open &rarr;</span></a></li>
   <li><a class="tile" href="{% url 'payroll-my' %}"><span class="chip">3</span><h2>My payslips</h2><p>View and download your payslips.</p><span class="go">Open &rarr;</span></a></li>
 </ul>
 {% endblock %}
