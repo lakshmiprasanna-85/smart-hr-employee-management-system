@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Attendance - Smart HR{% endblock %}
+{% block nav_attendance %} aria-current="page"{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">My space</p>
+  <h1>Attendance</h1>
+  <p class="lede">Today is {{ today|date:"l, j F Y" }}.</p>
+  {% if profile %}
+  <div class="actions">
+    {% if not today_record or not today_record.check_in %}
+    <form method="post" action="{% url 'attendance-check-in' %}">{% csrf_token %}<button class="button btn-inline" type="submit">Check in</button></form>
+    {% elif not today_record.check_out %}
+    <p class="status-line">You checked in at <b>{{ today_record.check_in|time:"H:i" }}</b>.</p>
+    <form method="post" action="{% url 'attendance-check-out' %}">{% csrf_token %}<button class="button btn-inline" type="submit">Check out</button></form>
+    {% else %}
+    <p class="status-line">Done for today: in at <b>{{ today_record.check_in|time:"H:i" }}</b>, out at <b>{{ today_record.check_out|time:"H:i" }}</b>.</p>
+    {% endif %}
+    {% if user.role == 'admin' or user.role == 'hr' %}<a class="button btn-inline btn-quiet" href="{% url 'attendance-team' %}">Team attendance</a>{% endif %}
+  </div>
+  {% elif user.role == 'admin' or user.role == 'hr' %}
+  <div class="actions"><a class="button btn-inline btn-quiet" href="{% url 'attendance-team' %}">Team attendance</a></div>
+  {% endif %}
+</section>
+<section class="panel">
+  <h2>My last 31 days</h2>
+  {% if not profile %}
+    <p class="empty">No employee profile is linked to your account yet. Please contact HR.</p>
+  {% elif records %}
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Date</th><th scope="col">Check in</th><th scope="col">Check out</th><th scope="col">Status</th></tr></thead>
+    <tbody>
+      {% for r in records %}
+      <tr><td>{{ r.date|date:"D, j M Y" }}</td><td>{{ r.check_in|time:"H:i"|default:"-" }}</td><td>{{ r.check_out|time:"H:i"|default:"-" }}</td><td><span class="pill {{ r.status }}">{{ r.get_status_display }}</span>{% if r.is_corrected %} <span class="muted">corrected</span>{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+    <p class="empty">No attendance recorded in the last 31 days. Use Check in above.</p>
+  {% endif %}
+</section>
+{% endblock %}

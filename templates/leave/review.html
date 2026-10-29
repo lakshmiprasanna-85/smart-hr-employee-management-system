@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Review leave - Smart HR{% endblock %}
+{% block nav_leave %} aria-current="page"{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Admin and HR only</p>
+  <h1>Review leave requests</h1>
+  <p class="lede">Approve or reject pending requests. The employee is emailed about the decision. <a href="{% url 'leave-home' %}">My leave</a></p>
+</section>
+<section class="panel">
+  <h2>Pending</h2>
+  {% if pending %}
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Employee</th><th scope="col">Type</th><th scope="col">Dates</th><th scope="col" class="right">Days</th><th scope="col">Reason</th><th scope="col">Decision</th></tr></thead>
+    <tbody>
+      {% for r in pending %}
+      <tr>
+        <td><b>{{ r.employee.employee_code }}</b><br><span class="muted">{{ r.employee.user.get_full_name|default:r.employee.user.get_username }}</span></td>
+        <td>{{ r.leave_type.name }}</td>
+        <td>{{ r.start_date|date:"j M Y" }}{% if r.end_date != r.start_date %} to {{ r.end_date|date:"j M Y" }}{% endif %}</td>
+        <td class="right">{{ r.total_days }}</td>
+        <td>{{ r.reason|default:"-" }}</td>
+        <td>
+          {% if r.employee.user_id == user.id %}
+          <span class="muted">Your own request: someone else must decide it.</span>
+          {% else %}
+          <form method="post" action="{% url 'leave-decide' r.pk %}" class="decide">
+            {% csrf_token %}
+            <input type="text" name="note" placeholder="Note (optional)" aria-label="Note for {{ r.employee.employee_code }}">
+            <button class="link-button" type="submit" name="decision" value="approved">Approve</button>
+            <button class="link-button" type="submit" name="decision" value="rejected">Reject</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+    <p class="empty">No pending requests.</p>
+  {% endif %}
+</section>
+<section class="panel">
+  <h2>Recent decisions</h2>
+  {% if recent %}
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Employee</th><th scope="col">Type</th><th scope="col">Dates</th><th scope="col">Status</th><th scope="col">Decided by</th><th scope="col">Note</th></tr></thead>
+    <tbody>
+      {% for r in recent %}
+      <tr>
+        <td><b>{{ r.employee.employee_code }}</b></td>
+        <td>{{ r.leave_type.name }}</td>
+        <td>{{ r.start_date|date:"j M Y" }}{% if r.end_date != r.start_date %} to {{ r.end_date|date:"j M Y" }}{% endif %}</td>
+        <td><span class="pill {{ r.status }}">{{ r.get_status_display }}</span></td>
+        <td>{{ r.reviewed_by.get_full_name|default:r.reviewed_by.get_username|default:"-" }}</td>
+        <td>{{ r.reviewer_note|default:"-" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+    <p class="empty">Nothing decided yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

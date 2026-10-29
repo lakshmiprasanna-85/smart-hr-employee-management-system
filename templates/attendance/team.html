@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Team attendance - Smart HR{% endblock %}
+{% block nav_attendance %} aria-current="page"{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Admin and HR only</p>
+  <h1>Team attendance</h1>
+  <p class="lede">Who is in today, and the monthly totals. <a href="{% url 'attendance-home' %}">My attendance</a></p>
+</section>
+<section class="panel">
+  <h2>Today, {{ today|date:"j F Y" }}</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Employee</th><th scope="col">Check in</th><th scope="col">Check out</th><th scope="col">Status</th></tr></thead>
+    <tbody>
+      {% for row in board %}
+      <tr>
+        <td><b>{{ row.employee.employee_code }}</b><br><span class="muted">{{ row.employee.user.get_full_name|default:row.employee.user.get_username }}</span></td>
+        {% if row.record %}
+        <td>{{ row.record.check_in|time:"H:i"|default:"-" }}</td><td>{{ row.record.check_out|time:"H:i"|default:"-" }}</td>
+        <td><span class="pill {{ row.record.status }}">{{ row.record.get_status_display }}</span></td>
+        {% else %}
+        <td>-</td><td>-</td><td><span class="muted">No record yet</span></td>
+        {% endif %}
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="empty">No employees yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+</section>
+<section class="panel">
+  <h2>Monthly summary</h2>
+  <form method="get" class="inline-form">
+    <div><label for="month">Month</label>
+      <select id="month" name="month">{% for n, name in months %}<option value="{{ n }}"{% if n == month %} selected{% endif %}>{{ name }}</option>{% endfor %}</select></div>
+    <div><label for="year">Year</label><input id="year" name="year" type="number" min="2000" max="2100" value="{{ year }}"></div>
+    <button type="submit" class="button btn-inline">Show</button>
+  </form>
+  {% if summary %}
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Employee</th><th scope="col" class="right">Days recorded</th><th scope="col" class="right">Present</th><th scope="col" class="right">Late</th><th scope="col" class="right">Half day</th><th scope="col" class="right">Absent</th><th scope="col" class="right">On leave</th></tr></thead>
+    <tbody>
+      {% for row in summary %}
+      <tr><td><b>{{ row.employee }}</b></td><td class="right">{{ row.days }}</td><td class="right">{{ row.present }}</td><td class="right">{{ row.late }}</td><td class="right">{{ row.half_day }}</td><td class="right">{{ row.absent }}</td><td class="right">{{ row.on_leave }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}
+    <p class="empty">No attendance recorded for {{ year }}-{{ month }}.</p>
+  {% endif %}
+</section>
+{% endblock %}
