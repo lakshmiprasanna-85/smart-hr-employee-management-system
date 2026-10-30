@@ -8,9 +8,9 @@
   <p class="lede">Manage employees, attendance, leave decisions and payroll records.</p>
 </section>
 <ul class="tiles">
-  <li><div class="tile is-later"><span class="chip">1</span><h2>Employees</h2><span class="pill">Not available yet</span></div></li>
-  <li><div class="tile is-later"><span class="chip">2</span><h2>Attendance</h2><span class="pill">Not available yet</span></div></li>
-  <li><div class="tile is-later"><span class="chip">3</span><h2>Leave approvals</h2><span class="pill">Not available yet</span></div></li>
+  <li><a class="tile" href="{% url 'employees-home' %}"><span class="chip">1</span><h2>Employees</h2><p>Find people and their roles.</p><span class="go">Open &rarr;</span></a></li>
+  <li><a class="tile" href="{% url 'attendance-team' %}"><span class="chip">2</span><h2>Attendance</h2><p>Who is in today and monthly totals.</p><span class="go">Open &rarr;</span></a></li>
+  <li><a class="tile" href="{% url 'leave-review' %}"><span class="chip">3</span><h2>Leave approvals</h2><p>Approve or reject pending requests.</p><span class="go">Open &rarr;</span></a></li>
   <li><a class="tile" href="{% url 'payroll-home' %}"><span class="chip">4</span><h2>Payroll</h2><p>Payroll periods and records.</p><span class="go">Open &rarr;</span></a></li>
 </ul>
 {% endblock %}

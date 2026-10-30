@@ -126,3 +126,19 @@ input:focus{outline:3px solid var(--plum-soft);border-color:var(--plum)}
 .row-actions{white-space:nowrap}
 .row-actions form{display:inline-block;margin:0 0 0 6px}
 td form{margin:0}
+
+/* Attendance, leave and directory pages */
+.pill.approved,.pill.present,.pill.active{background:var(--ok-bg);color:var(--ok)}
+.pill.rejected,.pill.absent,.pill.terminated{background:#fbe4e1;color:#8a2a1f}
+.pill.late,.pill.probation{background:var(--sand);color:var(--warn)}
+.pill.half_day,.pill.on_leave{background:var(--mist);color:#44507a}
+.status-line{margin:0;align-self:center}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:4px 18px;padding-bottom:6px}
+.form-grid .wide{grid-column:1/-1}
+.form-grid input,.form-grid select,.form-grid textarea,input[type=search],input[type=date]{width:100%;padding:10px 12px;font:inherit;background:#fcfaf8;color:var(--ink);border:1.5px solid #d9d2ca;border-radius:3px}
+.form-grid .button{margin-top:6px}
+.inline-form input[type=search]{min-width:220px}
+.decide{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.decide input{width:auto;min-width:170px;padding:7px 10px;font:inherit;font-size:.88rem;border:1px solid var(--line);border-radius:3px;background:#fff}
+td .error{margin:0}
+.panel .error{margin:12px 0}

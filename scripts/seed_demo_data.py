@@ -1,7 +1,10 @@
 """
 Create synthetic demo data: one login per role, departments, employee profiles,
-leave types, salary components and two payroll periods with payslips. Safe to run
-more than once (it never creates duplicates).
+leave types, a few days of attendance, sample leave requests, salary components and
+two payroll periods with payslips. Safe to run more than once (it never creates
+duplicates).
+
+Today's attendance is left empty on purpose so you can try Check in.
 
 Run from the project root:
 
@@ -12,7 +15,7 @@ every demo account comes from SEED_PASSWORD in your .env file.
 """
 import os
 import sys
-from datetime import date
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 # Make the project root importable and start Django.
@@ -25,8 +28,13 @@ import django  # noqa: E402
 django.setup()
 
 from apps.accounts.models import User  # noqa: E402
+from django.utils import timezone  # noqa: E402
+
+from apps.attendance.models import Attendance  # noqa: E402
 from apps.employees.models import Department, Employee  # noqa: E402
-from apps.leave_management.models import LeaveType  # noqa: E402
+from apps.leave_management.models import LeaveRequest, LeaveType  # noqa: E402
+from apps.leave_management.services import decide  # noqa: E402
+from apps.leave_management.states import LeaveStatus  # noqa: E402
 from apps.payroll.models import EmployeeSalaryComponent, PayrollPeriod, PayrollRecord, SalaryComponent  # noqa: E402
 from apps.payroll.payslips import generate_payslips_for_period  # noqa: E402
 from apps.payroll.services import close_period, create_period, generate_payroll, set_payment_status  # noqa: E402
@@ -78,6 +86,56 @@ SALARIES = {
 
 # (year, month, mark everything paid and close it?)
 PAYROLL_PERIODS = [(2026, 8, True), (2026, 9, False)]
+
+
+# (employee code, leave type, start, end, reason, decision or None for pending)
+LEAVE_REQUESTS = [
+    ("EMP003", "Casual Leave", date(2026, 11, 9), date(2026, 11, 10), "Family function", None),
+    ("EMP004", "Sick Leave", date(2026, 11, 3), date(2026, 11, 3), "Fever", LeaveStatus.APPROVED),
+    ("EMP003", "Earned Leave", date(2026, 12, 21), date(2026, 12, 24), "Year-end trip", None),
+]
+
+
+def seed_attendance(days=5):
+    """A few recent working days for everyone (not today, so Check in can be tried)."""
+    today = timezone.localdate()
+    tz = timezone.get_current_timezone()
+    made = 0
+    day, counted = today - timedelta(days=1), 0
+    while counted < days:
+        if day.weekday() < 5:  # Monday to Friday
+            counted += 1
+            for index, employee in enumerate(Employee.objects.order_by("employee_code")):
+                late = (day.toordinal() + index) % 7 == 0
+                start = time(10, 20) if late else time(9, 5 + index)
+                _, created = Attendance.objects.get_or_create(
+                    employee=employee,
+                    date=day,
+                    defaults={
+                        "check_in": datetime.combine(day, start, tzinfo=tz),
+                        "check_out": datetime.combine(day, time(18, 0 + index), tzinfo=tz),
+                        "status": Attendance.Status.LATE if late else Attendance.Status.PRESENT,
+                    },
+                )
+                made += created
+        day -= timedelta(days=1)
+    print(f"attendance: {made} new record(s)")
+
+
+def seed_leave():
+    reviewer = User.objects.get(username="hr_demo")
+    for code, type_name, start, end, reason, decision in LEAVE_REQUESTS:
+        employee = Employee.objects.get(employee_code=code)
+        leave, created = LeaveRequest.objects.get_or_create(
+            employee=employee,
+            leave_type=LeaveType.objects.get(name=type_name),
+            start_date=start,
+            end_date=end,
+            defaults={"reason": reason},
+        )
+        if created and decision:
+            decide(leave, decision, reviewer, "Approved for the demo")
+    print(f"leave requests: {LeaveRequest.objects.count()} in total")
 
 
 def seed_payroll():
@@ -155,6 +213,8 @@ def main():
         )
         print(f"{'created' if created else 'exists '}  {username:<15} role={role}")
 
+    seed_attendance()
+    seed_leave()
     seed_payroll()
 
     print(f"\nDemo password for newly created accounts: {PASSWORD}")
