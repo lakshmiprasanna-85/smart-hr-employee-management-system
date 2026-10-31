@@ -295,6 +295,21 @@ requirements.txt         Python dependencies
 * Open a pull request into `main`, let the team lead review it, then merge.
 * Never commit `.env`, `db.sqlite3`, `logs/`, `media/` or real personal data.
 
+## Assumptions and decisions
+
+The project brief does not settle every access rule, so these choices were made
+and are recorded here. Each one is a single decorator plus a test, so changing
+it later is a small, safe edit.
+
+* **Payroll access:** both Admin and HR can manage payroll (salary setup,
+  generating payroll, payment status, payslips). The brief only asks for
+  "controlled access", so access is limited to these two roles.
+* **Employees see only their own pay:** an Employee can open only their own
+  payslips. Other people's payslips return 404.
+* **Admin and the Employee dashboard:** Admin may open the Employee dashboard,
+  which is only useful when the Admin also has an Employee profile.
+* **Attendance correction by HR:** not built yet (see Known limitations).
+
 ## Known limitations
 
 * The Admin dashboard still shows a placeholder card for Reports and charts (Week 4).

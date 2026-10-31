@@ -37,7 +37,10 @@ already have automated tests in `tests/`.
 Admin and HR rows marked "Own" apply only when that user also has an Employee
 profile.
 
-**Open decisions to confirm with your mentor:** whether HR may manage payroll
-or only Admin may, and whether Admin should be able to open the Employee
-dashboard. The matrix above reflects the current implementation; changing a
-row means changing one decorator and its test.
+**Assumptions:** the brief does not say whether HR may manage payroll or only
+Admin may, nor whether Admin may open the Employee dashboard. This project
+assumes that Admin and HR both manage payroll, that Employees see only their
+own payroll and payslips, and that Admin may open the Employee dashboard (useful
+only when the Admin has an Employee profile). The matrix above reflects the
+current implementation; changing a row means changing one decorator and its
+test.
