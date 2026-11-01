@@ -178,6 +178,15 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY = "same-origin"
+    X_FRAME_OPTIONS = "DENY"
+
+# Opt in only when the site is actually served over HTTPS (see deployment notes).
+if env_bool("HTTPS", False):
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = int(env("SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # --------------------------------------------------------------------------
 # Logging: console plus a rotating file in logs/
