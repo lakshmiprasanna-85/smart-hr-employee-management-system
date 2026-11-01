@@ -1,4 +1,4 @@
-# Requirements (Week 1)
+# Requirements
 
 This document records the rules the system is built around. Week 1 models and
 tests the rules below; Weeks 2 to 4 build the workflows that enforce them.
@@ -8,9 +8,9 @@ tests the rules below; Weeks 2 to 4 build the workflows that enforce them.
 | Week | Focus | Status |
 |------|-------|--------|
 | 1 | Requirements, data model, Django/DRF foundation, authentication, role-aware dashboard shells, tests | Done |
-| 2 | Employee, department, attendance and leave workflows | Teammate |
-| 3 | Payroll, payslips, e-mail notifications, audit logging | Planned |
-| 4 | Charts, downloadable reports, security review, final documentation | Planned |
+| 2 | Employee, department, attendance and leave workflows | Done |
+| 3 | Payroll, payslips, e-mail notifications, audit logging | Done |
+| 4 | Charts, downloadable reports, security review, final documentation | Done |
 
 ## 2. Roles
 
@@ -103,4 +103,29 @@ Pending ----+--> Rejected
 ## 8. Out of scope for Week 1
 
 Employee/department screens, attendance entry, leave application and approval,
-payslip generation, e-mail sending, charts and exports.
+payslip generation, e-mail sending, charts and exports. (Charts and exports are
+now built in Week 4; see section 9.)
+
+## 9. Reporting and exports (Week 4)
+
+* The reports page (`/reports/`) and every download are Admin/HR only. Employees
+  receive 403 and anonymous visitors are redirected to the login page.
+* Charts are server-rendered and show: headcount by department, attendance
+  status mix for a month, leave requests starting in a month, and payroll net
+  totals for the last six periods. KPI definitions live in the README.
+* Reports exist for the employee directory, attendance, leave and payroll, each
+  in CSV, Excel (`.xlsx`) and PDF. The employee report never includes phone,
+  date of birth or address.
+* Attendance and leave exports are scoped to the selected month; payroll uses
+  that month's period or the latest one, and says which period it used.
+* Download responses are marked `private, no-store`; text cells are protected
+  against spreadsheet formula injection; PDF text is escaped.
+* Every download writes an `export` event to `AuditEvent` with the actor,
+  filters, format and row count.
+
+## 10. Security review (Week 4)
+
+The review, its findings and the accepted residual risks are recorded in
+[security_review.md](security_review.md). Production hardening (secure cookies,
+HSTS and the SSL redirect) is environment-driven; `HTTPS=True` must only be set
+when the site is actually served over TLS.

@@ -83,16 +83,27 @@ What to point out: the pages use the same rules as the API (one check-in a day, 
 
 What to point out: pay is calculated from salary components (a percentage of Basic or a fixed amount), paid records are final, every sensitive change is audited, and payslip e-mails contain no salary figures.
 
-## 7. Tests
+## 7. Reports and exports (Week 4)
+
+1. Log in as `hr_demo` and click **Reports**. Check the four KPI cards and the four charts: headcount by department, attendance mix, leave by status and payroll net by period.
+2. Change the month and year and press **Show**: the attendance and leave charts follow the selected month. Try a month with no data to see the empty state.
+3. In **Download reports**, download the employee report as CSV, Excel and PDF. Open the CSV in a spreadsheet: there is no phone number, date of birth or address.
+4. Download the payroll report for the current month; when that month has no payroll period, the report uses the latest period and says so in its subtitle.
+5. Open `/admin/` as `admin_demo` and then **Audit events**: each download added an `export` event with the format, filters and row count.
+6. Log in as `employee_demo` and try `/reports/` or a download link: the answer is 403. The Reports link is not in the employee menu.
+
+What to point out: charts are rendered on the server with no external JavaScript, every export is permission-checked and audited, responses are marked `no-store`, and spreadsheet cells are guarded against formula injection.
+
+## 8. Tests
 
 ```
 python -m pytest
 ```
 
-All tests pass (164 at the time of writing). They cover authentication, the role matrix, model rules, the Week 2 workflows, login auditing, payroll rules, payslip generation and download access, e-mail notifications, and the payroll, attendance, leave and employee pages.
+All tests pass (193 at the time of writing). They cover authentication, the role matrix, model rules, the Week 2 workflows, login auditing, payroll rules, payslip generation and download access, e-mail notifications, the payroll, attendance, leave and employee pages, and the Week 4 reports: KPI values, chart data, access control, all four reports in all three formats, PII exclusion, formula-injection protection, cache headers and export auditing.
 
 ## Notes for questions
 
 * Passwords are hashed by Django; secrets live in `.env`, which is never committed.
 * The database is PostgreSQL (SQLite works for a quick local start).
-* Charts, downloadable reports and the deployment guide are Week 4.
+* KPI definitions, deployment notes and the security review are in the README and `docs/security_review.md`.

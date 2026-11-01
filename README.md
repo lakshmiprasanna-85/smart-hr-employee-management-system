@@ -13,7 +13,7 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 | 1 | Requirements, data model, authentication, role-aware dashboards, tests | Done |
 | 2 | Employee, attendance and leave workflows | Done |
 | 3 | Payroll, payslips, e-mail notifications | Done |
-| 4 | Charts, reports, security review, final docs | Planned |
+| 4 | Charts, reports, security review, final docs | Done |
 
 ### What Week 1 delivers
 
@@ -68,6 +68,26 @@ leave requests and payroll, with separate Admin, HR and Employee dashboards.
 * Tests for payroll rules, payslips, access restrictions, notifications and the
   pages (all tests pass; see Run the tests).
 
+### What Week 4 delivers
+
+* **Reports page** (`/reports/`, Admin and HR only): workforce KPIs for a chosen
+  month, with server-rendered bar charts for headcount by department, the
+  attendance status mix, leave requests by status and payroll net totals for the
+  last six periods. No chart JavaScript or external asset is needed.
+* **Downloadable reports:** employee directory, attendance, leave and payroll as
+  **CSV, Excel (`.xlsx`) and PDF**. Each report respects the selected month
+  (payroll falls back to the latest period when that month has none).
+* **Export safety:** every download is written to the audit log as an `export`
+  event, responses are sent with `Cache-Control: private, no-store`, spreadsheet
+  formula injection is neutralised and the employee report never includes phone,
+  date of birth or address.
+* **Documentation:** KPI definitions and deployment notes are below;
+  [the security review](docs/security_review.md) records the checks, the fixes and
+  the accepted residual risks. Production hardening (`HTTPS`, HSTS) is
+  environment-driven.
+* 29 new tests (page access, KPIs, charts, every report/format, PII exclusion,
+  formula injection, cache headers and audit events), 193 tests in total.
+
 ### Web pages for attendance, leave and the employee directory
 
 Weeks 2 and 3 built attendance and leave as an API. These pages put screens on
@@ -109,9 +129,9 @@ top of the same code, so the dashboards no longer show placeholder cards for the
 |---|---|
 | ![Attendance](docs/screenshots/09-attendance.png) | ![Leave request](docs/screenshots/10-leave-request.png) |
 
-| Leave review (Admin and HR) |
-|---|
-| ![Leave review](docs/screenshots/11-leave-review.png) |
+| Leave review (Admin and HR) | Reports and charts (Admin and HR) |
+|---|---|
+| ![Leave review](docs/screenshots/11-leave-review.png) | ![Reports page](docs/screenshots/12-reports.png) |
 
 A step-by-step walkthrough for showing the app is in [docs/demo_script.md](docs/demo_script.md).
 
@@ -162,6 +182,8 @@ lists every variable with placeholder values.
 | `EMAIL_*`, `DEFAULT_FROM_EMAIL` | E-mail settings for notifications. | console backend (prints e-mails in the terminal) |
 | `SITE_URL` | Base address used for links inside e-mails. | `http://localhost:8000` |
 | `SEED_PASSWORD` | Password for demo accounts created by the seed script. | `Demo@12345` |
+| `HTTPS` | Set to `True` only when the site is served over HTTPS. Enables the SSL redirect and HSTS. | `False` |
+| `SECURE_HSTS_SECONDS` | HSTS lifetime when `HTTPS=True`. | `31536000` |
 
 Generate a secret key with:
 
@@ -242,6 +264,8 @@ Open http://127.0.0.1:8000/ and log in. Each role lands on its own dashboard:
 | `/leave/` (apply, cancel) | own | own | own |
 | `/leave/review/` (approve / reject) | yes | yes | no |
 | `/employees/` (directory) | yes | yes | no |
+| `/reports/` (charts and KPIs) | yes | yes | no |
+| `/reports/export/<employees\|attendance\|leave\|payroll>/<csv\|xlsx\|pdf>/` | yes | yes | no |
 | `/payroll/payslips/<id>/download/` | any | any | own |
 | `/api/accounts/me/` | yes | yes | yes |
 | `/api/employees/employees/` | full | full | directory only |
@@ -265,6 +289,57 @@ python -m pytest
 Useful variations: `python -m pytest -v` for a test-by-test list, and
 `python -m pytest tests/test_payroll_access.py` for one file.
 
+## KPI definitions
+
+The reports page, the exports and the tests all use the rules below, so a number
+means the same thing everywhere. All figures are whole numbers unless noted;
+money is INR.
+
+| KPI / chart | Definition | Source |
+|---|---|---|
+| Employees | Employee records whose status is not `terminated` | `Employee` |
+| Checked in today | Today's attendance rows with a non-empty `check_in`, excluding terminated employees | `Attendance` |
+| Pending leave | Leave requests whose status is `pending` | `LeaveRequest` |
+| Latest payroll | Sum of `net_amount` for the most recent payroll period, with the period label | `PayrollRecord` |
+| Headcount by department | Non-terminated employees grouped by department; employees without a department appear as "No department" | `Employee` |
+| Attendance mix | Every attendance row whose `date` falls in the selected month, grouped by status | `Attendance` |
+| Leave by status | Every request whose `start_date` falls in the selected month, grouped by status | `LeaveRequest` |
+| Payroll net by period | Sum of `net_amount` per period for the last six periods, oldest first | `PayrollRecord` |
+| Employee report | All employee records, including former employees; no personal contact details | `Employee` |
+| Attendance / leave report | Rows for the selected month (attendance by `date`, leave by `start_date`) | `Attendance`, `LeaveRequest` |
+| Payroll report | Rows for the selected month's period; if it does not exist, the latest period is used and the report says so | `PayrollRecord` |
+
+Percentages on the charts are rounded to whole numbers. A chart with no rows
+shows an empty-state message instead of a zero-width bar.
+
+## Deployment notes
+
+1. **Configure the environment.** Copy `.env.example` to `.env` and set
+   `DEBUG=False`, a long random `SECRET_KEY`, the real `ALLOWED_HOSTS`, the
+   PostgreSQL connection (`DB_ENGINE=postgres`), and the SMTP settings. Never
+   commit `.env`.
+2. **Serve over HTTPS.** Set `HTTPS=True` only when TLS terminates at the proxy
+   or web server; this turns on the SSL redirect and HSTS. Session and CSRF
+   cookies are already marked `Secure` whenever `DEBUG=False`. If the proxy
+   sets `X-Forwarded-Proto`, tell Django to trust it with
+   `SECURE_PROXY_SSL_HEADER` (not enabled by default).
+3. **Prepare the database.** Run `python manage.py migrate` against the
+   production database. **Do not run `scripts/seed_demo_data.py` in production**:
+   it creates synthetic accounts with a known demo password.
+4. **Collect static files.** Run `python manage.py collectstatic --noinput` and
+   serve `staticfiles/` from the web server or a CDN. WhiteNoise is not bundled.
+5. **Run a WSGI server.** Start `config.wsgi:application` with a production WSGI
+   server (for example gunicorn) behind the TLS proxy. Do not use
+   `runserver` in production.
+6. **Protect files and logs.** `media/payslips/` is private: payslips are served
+   only through the permission-checked download view, never from `MEDIA_URL`.
+   Keep `media/`, `logs/app.log` and database backups outside the web root and
+   back them up together.
+7. **Check the release.** Log in as each role, open `/reports/`, download one
+   report in each format, and read [the security review](docs/security_review.md)
+   for the remaining accepted risks (no rate limiting, no MFA, synchronous
+   exports).
+
 ## Project structure
 
 ```
@@ -275,7 +350,7 @@ apps/
   attendance/            Attendance
   leave_management/      LeaveType, LeaveRequest, LeaveStatusHistory, state rules
   payroll/               Periods, salary components, records, payslip PDFs, pages + API
-  reports/               AuditEvent, NotificationLog, audit and e-mail services
+  reports/               AuditEvent, NotificationLog, KPIs, charts, CSV/Excel/PDF exports
 templates/               HTML templates (base, login, dashboards, payroll, e-mails, 403)
 static/                  CSS
 tests/                   pytest test suite
@@ -297,14 +372,14 @@ requirements.txt         Python dependencies
 
 ## Known limitations
 
-* The Admin dashboard still shows a placeholder card for Reports and charts (Week 4).
 * HR cannot yet correct an attendance record (the `is_corrected` flag exists, but there is no screen or API for it).
-* Charts and CSV/Excel/PDF report exports are not built yet (Week 4).
 * Payroll is a full month per employee: there is no proration for part-month joiners, no tax slabs and no overtime.
 * E-mails are sent straight away, not through a background queue (Celery/Redis); failures are logged and can be re-tried by regenerating.
 * Salary components, periods and records are managed through the pages and API; there is no bulk import.
+* Reports and exports run synchronously in the request; there is no background job or pagination for very large datasets.
+* There are no scheduled report e-mails, and Employees do not see charts (least privilege).
+* Export downloads are not rate limited and the app has no MFA; see [the security review](docs/security_review.md).
 * Tests run on whichever database `.env` selects; the full suite passes on SQLite.
-* KPI definitions and deployment notes are added in Week 4.
 
 ## Contributors
 
@@ -315,4 +390,6 @@ Built as a two-person team.
   matrix, payroll access boundary, test harness.
 * **Abhinav Shukla** ([@abhinavshukla152005-beep](https://github.com/abhinavshukla152005-beep)) —
   employee directory, attendance check-in/out with monthly summary, the leave
-  approval state machine and status history, and the Week 2 test suite.
+  approval state machine and status history, the Week 2 test suite, and the
+  Week 4 reports page, charts, CSV/Excel/PDF exports, report tests and security
+  review.

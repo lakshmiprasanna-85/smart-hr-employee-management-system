@@ -11,6 +11,7 @@ class AuditEvent(models.Model):
         DELETE = "delete", "Delete"
         STATUS_CHANGE = "status_change", "Status change"
         LOGIN = "login", "Login"
+        EXPORT = "export", "Export"
 
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,

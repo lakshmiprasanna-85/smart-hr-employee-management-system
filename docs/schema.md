@@ -128,7 +128,7 @@ erDiagram
     AUDIT_EVENT {
         int id PK
         int actor_id FK
-        string action "create, update, delete, status_change, login"
+        string action "create, update, delete, status_change, login, export"
         string entity_type
         string entity_id
         json changes
