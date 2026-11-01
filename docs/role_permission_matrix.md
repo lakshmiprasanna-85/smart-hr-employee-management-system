@@ -32,7 +32,8 @@ already have automated tests in `tests/`.
 | Download payslip | All | All | Own | 3 | Permission-checked view, not a static URL; other people's payslips return 404; tested |
 | My payslips page `/payroll/my/` | Own | Own | Own | 3 | Login required; lists only the viewer's own records |
 | View notification logs | Yes | No | No | 3 | Read-only in the Django admin site |
-| Dashboards charts and CSV/Excel/PDF exports | Yes | Yes | No | 4 | |
+| Reports page `/reports/` (KPIs and charts) | Yes | Yes | No | 4 | Enforced and tested |
+| Download reports (CSV/Excel/PDF) | Yes | Yes | No | 4 | Enforced and tested; every download audited; employee report has no personal details |
 
 Admin and HR rows marked "Own" apply only when that user also has an Employee
 profile.
