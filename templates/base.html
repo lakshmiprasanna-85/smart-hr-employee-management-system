@@ -17,7 +17,8 @@
     <a href="{% url 'attendance-home' %}"{% block nav_attendance %}{% endblock %}>Attendance</a>
     <a href="{% url 'leave-home' %}"{% block nav_leave %}{% endblock %}>Leave</a>
     {% if user.role == 'admin' or user.role == 'hr' %}<a href="{% url 'employees-home' %}"{% block nav_employees %}{% endblock %}>Employees</a>
-    <a href="{% url 'payroll-home' %}"{% block nav_payroll %}{% endblock %}>Payroll</a>{% endif %}
+    <a href="{% url 'payroll-home' %}"{% block nav_payroll %}{% endblock %}>Payroll</a>
+    <a href="{% url 'reports-home' %}"{% block nav_reports %}{% endblock %}>Reports</a>{% endif %}
     <a href="{% url 'payroll-my' %}"{% block nav_payslips %}{% endblock %}>My payslips</a>
     {% if user.role == 'admin' %}<a href="{% url 'admin:index' %}">User admin</a>{% endif %}
   </nav>

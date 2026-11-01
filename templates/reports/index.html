@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Reports - Smart HR{% endblock %}
+{% block nav_reports %} aria-current="page"{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Admin and HR only</p>
+  <h1>Reports</h1>
+  <p class="lede">Workforce numbers for {{ month_label }}, plus downloadable CSV, Excel and PDF reports.</p>
+  <form method="get" class="inline-form">
+    <div><label for="month">Month</label>
+      <select id="month" name="month">{% for n, name in months %}<option value="{{ n }}"{% if n == month %} selected{% endif %}>{{ name }}</option>{% endfor %}</select></div>
+    <div><label for="year">Year</label><input id="year" name="year" type="number" min="2000" max="2100" value="{{ year }}"></div>
+    <button type="submit" class="button btn-inline">Show</button>
+  </form>
+</section>
+
+<ul class="kpi-grid">
+  <li class="kpi"><span class="kpi-label">Employees</span><b>{{ headcount }}</b><span class="muted">Current records, excluding terminated</span></li>
+  <li class="kpi"><span class="kpi-label">Checked in today</span><b>{{ present_today }}</b><span class="muted">Employees with a check-in</span></li>
+  <li class="kpi"><span class="kpi-label">Pending leave</span><b>{{ pending_leave }}</b><span class="muted">Requests waiting for a decision</span></li>
+  <li class="kpi"><span class="kpi-label">Latest payroll</span><b>INR {{ latest_net|floatformat:2 }}</b><span class="muted">{% if latest_period %}{{ latest_period.label }}{% else %}No period yet{% endif %}</span></li>
+</ul>
+
+<section class="panel">
+  <h2>Headcount by department</h2>
+  {% if by_department.total %}
+  <div class="chart">
+    {% for row in by_department.rows %}
+    <div class="bar-row">
+      <span class="bar-label">{{ row.label }}</span>
+      <span class="bar-track"><span class="bar-fill" style="width: {{ row.percent }}%"></span></span>
+      <span class="bar-value">{{ row.count }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="note">{{ by_department.total }} employee(s) in total, excluding terminated records.</p>
+  {% else %}
+  <p class="empty">No employee records yet.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Attendance in {{ month_label }}</h2>
+  {% if attendance.total %}
+  <div class="stack" aria-label="Attendance status mix">
+    {% for segment in attendance.segments %}<span class="stack-seg {{ segment.status }}" title="{{ segment.label }}: {{ segment.count }}" style="width: {{ segment.percent }}%"></span>{% endfor %}
+  </div>
+  <div class="legend">
+    {% for row in attendance.rows %}<span><i class="dot {{ row.status }}"></i>{{ row.label }} <b>{{ row.count }}</b>{% if row.percent %} ({{ row.percent }}%){% endif %}</span>{% endfor %}
+  </div>
+  <p class="note">{{ attendance.total }} attendance record(s) in {{ month_label }}.</p>
+  {% else %}
+  <p class="empty">No attendance recorded for {{ month_label }}.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Leave requests starting in {{ month_label }}</h2>
+  {% if leave.total %}
+  <div class="chart">
+    {% for row in leave.rows %}
+    <div class="bar-row">
+      <span class="bar-label">{{ row.label }}</span>
+      <span class="bar-track"><span class="bar-fill {{ row.status }}" style="width: {{ row.percent }}%"></span></span>
+      <span class="bar-value">{{ row.count }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="note">{{ leave.total }} request(s) starting in {{ month_label }}.</p>
+  {% else %}
+  <p class="empty">No leave requests start in {{ month_label }}.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Payroll net total by period</h2>
+  {% if payroll.rows %}
+  <div class="chart">
+    {% for row in payroll.rows %}
+    <div class="bar-row">
+      <span class="bar-label">{{ row.label }}</span>
+      <span class="bar-track"><span class="bar-fill payroll" style="width: {{ row.percent }}%"></span></span>
+      <span class="bar-value">INR {{ row.value|floatformat:2 }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="note">Last {{ payroll.rows|length }} payroll period(s).</p>
+  {% else %}
+  <p class="empty">No payroll periods yet.</p>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Download reports</h2>
+  <p class="note">Admin and HR only. Every download is written to the audit log, and responses are marked <code>no-store</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th scope="col">Report</th><th scope="col">Contents</th><th scope="col">Formats</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>Employees</b></td>
+        <td>Directory with department, job title and status. Personal contact details are not included.</td>
+        <td class="export-links">
+          <a class="export-chip" href="{% url 'report-export' kind='employees' fmt='csv' %}">CSV</a>
+          <a class="export-chip" href="{% url 'report-export' kind='employees' fmt='xlsx' %}">Excel</a>
+          <a class="export-chip" href="{% url 'report-export' kind='employees' fmt='pdf' %}">PDF</a>
+        </td>
+      </tr>
+      <tr>
+        <td><b>Attendance</b></td>
+        <td>All attendance records for {{ month_label }}.</td>
+        <td class="export-links">
+          <a class="export-chip" href="{% url 'report-export' kind='attendance' fmt='csv' %}?year={{ year }}&month={{ month }}">CSV</a>
+          <a class="export-chip" href="{% url 'report-export' kind='attendance' fmt='xlsx' %}?year={{ year }}&month={{ month }}">Excel</a>
+          <a class="export-chip" href="{% url 'report-export' kind='attendance' fmt='pdf' %}?year={{ year }}&month={{ month }}">PDF</a>
+        </td>
+      </tr>
+      <tr>
+        <td><b>Leave</b></td>
+        <td>Leave requests starting in {{ month_label }}.</td>
+        <td class="export-links">
+          <a class="export-chip" href="{% url 'report-export' kind='leave' fmt='csv' %}?year={{ year }}&month={{ month }}">CSV</a>
+          <a class="export-chip" href="{% url 'report-export' kind='leave' fmt='xlsx' %}?year={{ year }}&month={{ month }}">Excel</a>
+          <a class="export-chip" href="{% url 'report-export' kind='leave' fmt='pdf' %}?year={{ year }}&month={{ month }}">PDF</a>
+        </td>
+      </tr>
+      <tr>
+        <td><b>Payroll</b></td>
+        <td>Payroll records for {{ month_label }} (or the latest period when that month has none).</td>
+        <td class="export-links">
+          <a class="export-chip" href="{% url 'report-export' kind='payroll' fmt='csv' %}?year={{ year }}&month={{ month }}">CSV</a>
+          <a class="export-chip" href="{% url 'report-export' kind='payroll' fmt='xlsx' %}?year={{ year }}&month={{ month }}">Excel</a>
+          <a class="export-chip" href="{% url 'report-export' kind='payroll' fmt='pdf' %}?year={{ year }}&month={{ month }}">PDF</a>
+        </td>
+      </tr>
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}
