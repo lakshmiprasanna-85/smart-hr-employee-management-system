@@ -398,11 +398,13 @@ it later is a small, safe edit.
 
 ## Contributors
 
-Built as a two-person team.
 
 * **Lakshmi Prasanna** ([@lakshmiprasanna-85](https://github.com/lakshmiprasanna-85)) —
   project lead; core data model and schema, authentication and the role-permission
-  matrix, payroll access boundary, test harness.
+  matrix, role-aware dashboards, payroll access boundary and test harness (Week 1);
+  payroll calculation, payslip PDFs and e-mail notifications (Week 3); the
+  attendance, leave and employee directory pages; demo data, documentation and
+  screenshots; pull request review and merging.
 * **Abhinav Shukla** ([@abhinavshukla152005-beep](https://github.com/abhinavshukla152005-beep)) —
   employee directory, attendance check-in/out with monthly summary, the leave
   approval state machine and status history, the Week 2 test suite, and the
